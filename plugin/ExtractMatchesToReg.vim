@@ -21,7 +21,7 @@ function! s:ParsePatternArg( args )
     if empty(a:args)
 	" Corner case: No argument given; use previous search pattern and the
 	" unnamed register. 
-	let [l:pattern, l:register] = [@/, '']
+	let [l:pattern, l:register] = ['', '']
     elseif empty(l:matches)
 	" No pattern separator and register; use entire argument as pattern and
 	" the unnamed register. 
@@ -35,9 +35,10 @@ function! s:ParsePatternArg( args )
 endfunction
 
 ":[range]GrepToReg[!] /{pattern}/[x]
-":[range]GrepToReg[!] {pattern}
-"			Yank all lines in [range] that match {pattern} (with !:
-"			do not match) into register [x] (or the unnamed register). 
+":[range]GrepToReg[!] [{pattern}]
+"			Yank all lines in [range] that match {pattern} (or the
+"			last search pattern if omitted), with !: do not match,
+"			into register [x] (or the unnamed register). 
 function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
     let l:save_view = winsaveview()
 
@@ -84,5 +85,55 @@ function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
     endif
 endfunction
 command! -bang -nargs=? -range=% GrepToReg call <SID>GrepToReg(<line1>, <line2>, <q-args>, <bang>0)
+
+":[range]CopyMatchesToReg[!] /{pattern}/[x]
+":[range]CopyMatchesToReg[!] {pattern}
+"			Copy text matching {pattern} (or the last search pattern
+"			if omitted) in [range] into register [x] (or the unnamed
+"			register). 
+function! s:CopyMatchesToReg( firstLine, lastLine, args, isNonMatchingLines )
+    let l:save_view = winsaveview()
+
+    let [l:pattern, l:register] = s:ParsePatternArg(a:args)
+
+    let l:matchRanges = []
+    let l:cnt = 0
+    let [l:startLine, l:startCol, l:isFirst] = [a:firstLine, 1, 1]
+    while 1
+	call cursor(l:startLine, l:startCol)
+	let [l:startLine, l:startCol] = searchpos(l:pattern, (l:isFirst ? 'c' : '') . 'W', a:lastLine)
+	let l:isFirst = 0
+	if l:startLine == 0 | break | endif
+	let [l:endLine, l:endCol] = searchpos(l:pattern, 'ceW', a:lastLine)
+	if l:endLine == 0 | break | endif 
+echomsg printf('**** %d,%d .. %d,%d', l:startLine, l:startCol, l:endLine, l:endCol)
+	call add(l:matchRanges, [[l:startLine, l:startCol], [l:endLine, l:endCol]])
+	let l:cnt += 1
+    endwhile
+    return
+
+    if l:cnt == 0
+	let v:errmsg = 'E486: Pattern not found: ' . l:pattern
+	echohl ErrorMsg
+	echomsg v:errmsg
+	echohl None
+    else
+"****D echomsg l:cnt string(sort(keys(l:matchingLines)))
+	if a:isNonMatchingLines
+	    let l:lineNums = filter(range(a:firstLine, a:lastLine), '! has_key(l:matchingLines, v:val)')
+	else
+	    let l:lineNums = sort(keys(l:matchingLines))
+	endif
+	let l:lines = join(map(l:lineNums, 'getline(v:val)'), "\n")
+	call setreg(l:register, l:lines, 'V')
+    endif
+
+    call winrestview(l:save_view)
+
+    if l:cnt > 0 && l:cnt > &report
+	echo printf('%d %s%s yanked', l:cnt, (l:isBlocks ? 'block' : 'line'), (l:cnt == 1 ? '' : 's'))
+    endif
+endfunction
+command! -bang -nargs=? -range=% CopyMatchesToReg call <SID>CopyMatchesToReg(<line1>, <line2>, <q-args>, <bang>0)
 
 " vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
