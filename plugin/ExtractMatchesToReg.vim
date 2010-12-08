@@ -16,13 +16,7 @@ if exists('g:loaded_GrepToReg') || (v:version < 700)
 endif
 let g:loaded_GrepToReg = 1
 
-":[range]GrepToReg[!] /{pattern}/[x]
-":[range]GrepToReg[!] {pattern}
-"			Yank all lines in [range] that match {pattern} (with !:
-"			do not match) into register [x] (or the unnamed register). 
-function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
-    let l:save_view = winsaveview()
-
+function! s:ParsePatternArg( args )
     let l:matches = matchlist(a:args, '\V\^\(\i\@!\.\)\(\.\*\)\1\s\*\(\[a-zA-Z0-9-"*+_/]\)\?\s\*\$')
     if empty(a:args)
 	" Corner case: No argument given; use previous search pattern and the
@@ -37,8 +31,21 @@ function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
     endif
     let l:register = (empty(l:register) ? '"' : l:register)
 
+    return [l:pattern, l:register]
+endfunction
+
+":[range]GrepToReg[!] /{pattern}/[x]
+":[range]GrepToReg[!] {pattern}
+"			Yank all lines in [range] that match {pattern} (with !:
+"			do not match) into register [x] (or the unnamed register). 
+function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
+    let l:save_view = winsaveview()
+
+    let [l:pattern, l:register] = s:ParsePatternArg(a:args)
+
     let l:matchingLines = {}
     let l:cnt = 0
+    let l:isBlocks = 0
     let l:startLine = a:firstLine
     while 1
 	call cursor(l:startLine, 1)
@@ -50,6 +57,7 @@ function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
 	    let l:matchingLines[l:line] = 1
 	endfor
 	let l:cnt += 1
+	let l:isBlocks = l:isBlocks || (l:startLine != l:endLine)
 	let l:startLine += 1
     endwhile
 
@@ -70,6 +78,10 @@ function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
     endif
 
     call winrestview(l:save_view)
+
+    if l:cnt > 0 && l:cnt > &report
+	echo printf('%d %s%s yanked', l:cnt, (l:isBlocks ? 'block' : 'line'), (l:cnt == 1 ? '' : 's'))
+    endif
 endfunction
 command! -bang -nargs=? -range=% GrepToReg call <SID>GrepToReg(<line1>, <line2>, <q-args>, <bang>0)
 
