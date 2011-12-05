@@ -175,4 +175,4 @@ function! s:CopyMatchesToReg( firstLine, lastLine, args, isOnlyFirstMatch )
 endfunction
 command! -bang -nargs=? -range=% CopyMatchesToReg call <SID>CopyMatchesToReg(<line1>, <line2>, <q-args>, <bang>0)
 
-" vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
+" vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
