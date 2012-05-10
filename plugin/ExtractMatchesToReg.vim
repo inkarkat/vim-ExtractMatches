@@ -8,12 +8,19 @@
 "   Use case inspired from a post by Luc Hermitte at
 "	http://www.reddit.com/r/vim/comments/ef9zh/any_better_way_to_yank_all_lines_matching_pattern/
 
-" Copyright: (C) 2010 Ingo Karkat
+" Copyright: (C) 2010-2011 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	002	06-Dec-2011	Add :CopyUniqueMatchesToReg variation. 
+"				Do not consider &report; in contrast to the
+"				built-in Vim commands, the result is
+"				indeterministic enough to always warrant a
+"				status message. 
+"				Tighten positioning of winsaveview() /
+"				winrestview(). 
 "	001	09-Dec-2010	file creation
 
 " Avoid installing twice or when in unsupported Vim version. 
@@ -46,27 +53,27 @@ endfunction
 "			last search pattern if omitted), with !: do not match,
 "			into register [x] (or the unnamed register). 
 function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
-    let l:save_view = winsaveview()
-
     let [l:pattern, l:register] = s:ParsePatternArg(a:args)
 
-    let l:matchingLines = {}
-    let l:cnt = 0
-    let l:isBlocks = 0
-    let l:startLine = a:firstLine
-    while 1
-	call cursor(l:startLine, 1)
-	let l:startLine = search(l:pattern, 'cnW', a:lastLine)
-	if l:startLine == 0 | break | endif
-	let l:endLine = search(l:pattern, 'cenW', a:lastLine)
-	if l:endLine == 0 | break | endif 
-	for l:line in range(l:startLine, l:endLine)
-	    let l:matchingLines[l:line] = 1
-	endfor
-	let l:cnt += 1
-	let l:isBlocks = l:isBlocks || (l:startLine != l:endLine)
-	let l:startLine += 1
-    endwhile
+    let l:save_view = winsaveview()
+	let l:matchingLines = {}
+	let l:cnt = 0
+	let l:isBlocks = 0
+	let l:startLine = a:firstLine
+	while 1
+	    call cursor(l:startLine, 1)
+	    let l:startLine = search(l:pattern, 'cnW', a:lastLine)
+	    if l:startLine == 0 | break | endif
+	    let l:endLine = search(l:pattern, 'cenW', a:lastLine)
+	    if l:endLine == 0 | break | endif 
+	    for l:line in range(l:startLine, l:endLine)
+		let l:matchingLines[l:line] = 1
+	    endfor
+	    let l:cnt += 1
+	    let l:isBlocks = l:isBlocks || (l:startLine != l:endLine)
+	    let l:startLine += 1
+	endwhile
+    call winrestview(l:save_view)
 
     if l:cnt == 0
 	let v:errmsg = 'E486: Pattern not found: ' . l:pattern
@@ -82,11 +89,7 @@ function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
 	endif
 	let l:lines = join(map(l:lineNums, 'getline(v:val)'), "\n")
 	call setreg(l:register, l:lines, 'V')
-    endif
 
-    call winrestview(l:save_view)
-
-    if l:cnt > 0 && l:cnt > &report
 	echo printf('%d %s%s yanked', l:cnt, (l:isBlocks ? 'block' : 'line'), (l:cnt == 1 ? '' : 's'))
     endif
 endfunction
@@ -99,6 +102,12 @@ command! -bang -nargs=? -range=% GrepToReg call <SID>GrepToReg(<line1>, <line2>,
 "			register). Each match is put on a new line. This works
 "			like "grep -o". With [!]: Copy only the first match in
 "			each line. 
+":[range]CopyUniqueMatchesToReg[!] /{pattern}/[x]
+":[range]CopyUniqueMatchesToReg[!] [{pattern}]
+"			Copy text matching {pattern} (or the last search pattern
+"			if omitted) in [range] into register [x] (or the unnamed
+"			register), but only once. Each match is put on a new
+"			line. With [!]: Copy only the first match in each line. 
 function! s:ExtractText( startPos, endPos )
 "*******************************************************************************
 "* PURPOSE:
@@ -132,32 +141,38 @@ function! s:ExtractText( startPos, endPos )
     endwhile
     return l:text
 endfunction
-function! s:CopyMatchesToReg( firstLine, lastLine, args, isOnlyFirstMatch )
-    let l:save_view = winsaveview()
-
+function! s:UniqueAdd( list, expr )
+    if index(a:list, a:expr) == -1
+	call add(a:list, a:expr)
+    endif
+endfunction
+function! s:CopyMatchesToReg( firstLine, lastLine, args, isOnlyFirstMatch, isUnique )
     let [l:pattern, l:register] = s:ParsePatternArg(a:args)
 
-    let l:matches = []
-    let l:cnt = 0
-    call cursor(a:firstLine, 1)
-    let l:isFirst = 1
-    while 1
-	let l:startPos = searchpos(l:pattern, (l:isFirst ? 'c' : '') . 'W', a:lastLine)
-	let l:isFirst = 0
-	if l:startPos == [0, 0] | break | endif
-	let l:endPos = searchpos(l:pattern, 'ceW', a:lastLine)
-	if l:endPos == [0, 0] | break | endif 
-	let l:match = s:ExtractText(l:startPos, l:endPos)
-	call add(l:matches, l:match)
+    let l:save_view = winsaveview()
+	let l:matches = []
+	call cursor(a:firstLine, 1)
+	let l:isFirst = 1
+	while 1
+	    let l:startPos = searchpos(l:pattern, (l:isFirst ? 'c' : '') . 'W', a:lastLine)
+	    let l:isFirst = 0
+	    if l:startPos == [0, 0] | break | endif
+	    let l:endPos = searchpos(l:pattern, 'ceW', a:lastLine)
+	    if l:endPos == [0, 0] | break | endif 
+	    let l:match = s:ExtractText(l:startPos, l:endPos)
+	    if a:isUnique
+		call s:UniqueAdd(l:matches, l:match)
+	    else
+		call add(l:matches, l:match)
+	    endif
 "****D echomsg '****' string(l:startPos) string(l:endPos) string(l:match)
-	let l:cnt += 1
+	    if a:isOnlyFirstMatch
+		normal! $
+	    endif
+	endwhile
+    call winrestview(l:save_view)
 
-	if a:isOnlyFirstMatch
-	    normal! $
-	endif
-    endwhile
-
-    if l:cnt == 0
+    if len(l:matches) == 0
 	let v:errmsg = 'E486: Pattern not found: ' . l:pattern
 	echohl ErrorMsg
 	echomsg v:errmsg
@@ -165,14 +180,11 @@ function! s:CopyMatchesToReg( firstLine, lastLine, args, isOnlyFirstMatch )
     else
 	let l:lines = join(l:matches, "\n")
 	call setreg(l:register, l:lines, 'V')
-    endif
 
-    call winrestview(l:save_view)
-
-    if l:cnt > 0 && l:cnt > &report
-	echo printf('%d match%s yanked', l:cnt, (l:cnt == 1 ? '' : 'es'))
+	echo printf('%d %smatch%s yanked', len(l:matches), (a:isUnique ? 'unique ' : ''), (len(l:matches) == 1 ? '' : 'es'))
     endif
 endfunction
-command! -bang -nargs=? -range=% CopyMatchesToReg call <SID>CopyMatchesToReg(<line1>, <line2>, <q-args>, <bang>0)
+command! -bang -nargs=? -range=% CopyMatchesToReg       call <SID>CopyMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 0)
+command! -bang -nargs=? -range=% CopyUniqueMatchesToReg call <SID>CopyMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 1)
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
