@@ -1,4 +1,4 @@
-" ExtractMatchesToReg.vim: Yank matches from range into a register. 
+" ExtractMatchesToReg.vim: Yank matches from range into a register.
 "
 " DEPENDENCIES:
 "
@@ -9,35 +9,37 @@
 "	http://www.reddit.com/r/vim/comments/ef9zh/any_better_way_to_yank_all_lines_matching_pattern/
 
 " Copyright: (C) 2010-2011 Ingo Karkat
-"   The VIM LICENSE applies to this script; see ':help copyright'. 
+"   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
-" REVISION	DATE		REMARKS 
-"	002	06-Dec-2011	Add :CopyUniqueMatchesToReg variation. 
+" REVISION	DATE		REMARKS
+"	003	11-May-2012	FIX: Correct non-identifier pattern to avoid
+"				matching surrounding whitespace.
+"	002	06-Dec-2011	Add :CopyUniqueMatchesToReg variation.
 "				Do not consider &report; in contrast to the
 "				built-in Vim commands, the result is
 "				indeterministic enough to always warrant a
-"				status message. 
+"				status message.
 "				Tighten positioning of winsaveview() /
-"				winrestview(). 
+"				winrestview().
 "	001	09-Dec-2010	file creation
 
-" Avoid installing twice or when in unsupported Vim version. 
+" Avoid installing twice or when in unsupported Vim version.
 if exists('g:loaded_ExtractMatchesToReg') || (v:version < 700)
     finish
 endif
 let g:loaded_ExtractMatchesToReg = 1
 
 function! s:ParsePatternArg( args )
-    let l:matches = matchlist(a:args, '\V\^\(\i\@!\.\)\(\.\*\)\1\s\*\(\[a-zA-Z0-9-"*+_/]\)\?\s\*\$')
+    let l:matches = matchlist(a:args, '\V\^\(\i\@!\S\)\(\.\*\)\1\s\*\(\[a-zA-Z0-9-"*+_/]\)\?\s\*\$')
     if empty(a:args)
 	" Corner case: No argument given; use previous search pattern and the
-	" unnamed register. 
+	" unnamed register.
 	let [l:pattern, l:register] = ['', '']
     elseif empty(l:matches)
 	" No pattern separator and register; use entire argument as pattern and
-	" the unnamed register. 
+	" the unnamed register.
 	let [l:pattern, l:register] = [a:args, '']
     else
 	let [l:pattern, l:register] = l:matches[2:3]
@@ -51,7 +53,7 @@ endfunction
 ":[range]GrepToReg[!] [{pattern}]
 "			Yank all lines in [range] that match {pattern} (or the
 "			last search pattern if omitted), with !: do not match,
-"			into register [x] (or the unnamed register). 
+"			into register [x] (or the unnamed register).
 function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
     let [l:pattern, l:register] = s:ParsePatternArg(a:args)
 
@@ -65,7 +67,7 @@ function! s:GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
 	    let l:startLine = search(l:pattern, 'cnW', a:lastLine)
 	    if l:startLine == 0 | break | endif
 	    let l:endLine = search(l:pattern, 'cenW', a:lastLine)
-	    if l:endLine == 0 | break | endif 
+	    if l:endLine == 0 | break | endif
 	    for l:line in range(l:startLine, l:endLine)
 		let l:matchingLines[l:line] = 1
 	    endfor
@@ -101,17 +103,17 @@ command! -bang -nargs=? -range=% GrepToReg call <SID>GrepToReg(<line1>, <line2>,
 "			if omitted) in [range] into register [x] (or the unnamed
 "			register). Each match is put on a new line. This works
 "			like "grep -o". With [!]: Copy only the first match in
-"			each line. 
+"			each line.
 ":[range]CopyUniqueMatchesToReg[!] /{pattern}/[x]
 ":[range]CopyUniqueMatchesToReg[!] [{pattern}]
 "			Copy text matching {pattern} (or the last search pattern
 "			if omitted) in [range] into register [x] (or the unnamed
 "			register), but only once. Each match is put on a new
-"			line. With [!]: Copy only the first match in each line. 
+"			line. With [!]: Copy only the first match in each line.
 function! s:ExtractText( startPos, endPos )
 "*******************************************************************************
 "* PURPOSE:
-"   Extract the text between a:startPos and a:endPos from the current buffer. 
+"   Extract the text between a:startPos and a:endPos from the current buffer.
 "* ASSUMPTIONS / PRECONDITIONS:
 "   none
 "* EFFECTS / POSTCONDITIONS:
@@ -119,7 +121,7 @@ function! s:ExtractText( startPos, endPos )
 "* INPUTS:
 "   a:startPos	    [line,col]
 "   a:endPos	    [line,col]
-"* RETURN VALUES: 
+"* RETURN VALUES:
 "   string text
 "*******************************************************************************
     let [l:line, l:column] = a:startPos
@@ -158,7 +160,7 @@ function! s:CopyMatchesToReg( firstLine, lastLine, args, isOnlyFirstMatch, isUni
 	    let l:isFirst = 0
 	    if l:startPos == [0, 0] | break | endif
 	    let l:endPos = searchpos(l:pattern, 'ceW', a:lastLine)
-	    if l:endPos == [0, 0] | break | endif 
+	    if l:endPos == [0, 0] | break | endif
 	    let l:match = s:ExtractText(l:startPos, l:endPos)
 	    if a:isUnique
 		call s:UniqueAdd(l:matches, l:match)
