@@ -1,13 +1,8 @@
 " ExtractMatchesToReg.vim: Yank matches from range into a register.
 "
 " DEPENDENCIES:
+"   - ingointegration.vim autoload script
 "
-" Source:
-"   Implementation inspired by
-"	http://vim.wikia.com/wiki/Copy_the_search_results_into_clipboard
-"   Use case inspired from a post by Luc Hermitte at
-"	http://www.reddit.com/r/vim/comments/ef9zh/any_better_way_to_yank_all_lines_matching_pattern/
-
 " Copyright: (C) 2010-2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
@@ -15,6 +10,8 @@
 "
 " REVISION	DATE		REMARKS
 "	004	14-Sep-2012	Split off documentation and autoload script.
+"				Reuse ingointegration#GetText() for text
+"				extraction; remove duplicated s:ExtractText().
 "	003	11-May-2012	FIX: Correct non-identifier pattern to avoid
 "				matching surrounding whitespace.
 "	002	06-Dec-2011	Add :CopyUniqueMatchesToReg variation.
@@ -86,39 +83,6 @@ function! ExtractMatchesToReg#GrepToReg( firstLine, lastLine, args, isNonMatchin
     endif
 endfunction
 
-function! s:ExtractText( startPos, endPos )
-"*******************************************************************************
-"* PURPOSE:
-"   Extract the text between a:startPos and a:endPos from the current buffer.
-"* ASSUMPTIONS / PRECONDITIONS:
-"   none
-"* EFFECTS / POSTCONDITIONS:
-"   none
-"* INPUTS:
-"   a:startPos	    [line,col]
-"   a:endPos	    [line,col]
-"* RETURN VALUES:
-"   string text
-"*******************************************************************************
-    let [l:line, l:column] = a:startPos
-    let [l:endLine, l:endColumn] = a:endPos
-    if l:line > l:endLine || (l:line == l:endLine && l:column > l:endColumn)
-	return ''
-    endif
-
-    let l:text = ''
-    while 1
-	if l:line == l:endLine
-	    let l:text .= matchstr( getline(l:line) . "\n", '\%' . l:column . 'c' . '.*\%' . (l:endColumn + 1) . 'c' )
-	    break
-	else
-	    let l:text .= matchstr( getline(l:line) . "\n", '\%' . l:column . 'c' . '.*' )
-	    let l:line += 1
-	    let l:column = 1
-	endif
-    endwhile
-    return l:text
-endfunction
 function! s:UniqueAdd( list, expr )
     if index(a:list, a:expr) == -1
 	call add(a:list, a:expr)
@@ -137,7 +101,7 @@ function! ExtractMatchesToReg#CopyMatchesToReg( firstLine, lastLine, args, isOnl
 	    if l:startPos == [0, 0] | break | endif
 	    let l:endPos = searchpos(l:pattern, 'ceW', a:lastLine)
 	    if l:endPos == [0, 0] | break | endif
-	    let l:match = s:ExtractText(l:startPos, l:endPos)
+	    let l:match = ingointegration#GetText(l:startPos, l:endPos)
 	    if a:isUnique
 		call s:UniqueAdd(l:matches, l:match)
 	    else
