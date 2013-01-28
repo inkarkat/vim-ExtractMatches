@@ -2,13 +2,16 @@
 "
 " DEPENDENCIES:
 "   - ingointegration.vim autoload script
+"   - ingocollections.vim autoload script
 "
-" Copyright: (C) 2010-2012 Ingo Karkat
+" Copyright: (C) 2010-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	005	15-Jan-2013	FIX: Need to use numerical sort() on line
+"				numbers.
 "	004	14-Sep-2012	Split off documentation and autoload script.
 "				Reuse ingointegration#GetText() for text
 "				extraction; remove duplicated s:ExtractText().
@@ -70,11 +73,11 @@ function! ExtractMatchesToReg#GrepToReg( firstLine, lastLine, args, isNonMatchin
 	echomsg v:errmsg
 	echohl None
     else
-"****D echomsg l:cnt string(sort(keys(l:matchingLines)))
+"****D echomsg l:cnt string(sort(keys(l:matchingLines),'ingocollections#numsort'))
 	if a:isNonMatchingLines
 	    let l:lineNums = filter(range(a:firstLine, a:lastLine), '! has_key(l:matchingLines, v:val)')
 	else
-	    let l:lineNums = sort(keys(l:matchingLines))
+	    let l:lineNums = sort(keys(l:matchingLines), 'ingocollections#numsort')
 	endif
 	let l:lines = join(map(l:lineNums, 'getline(v:val)'), "\n")
 	call setreg(l:register, l:lines, 'V')
