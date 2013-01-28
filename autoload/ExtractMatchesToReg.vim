@@ -1,6 +1,7 @@
 " ExtractMatchesToReg.vim: Yank matches from range into a register.
 "
 " DEPENDENCIES:
+"   - ingocmdargs.vim autoload script
 "   - ingointegration.vim autoload script
 "   - ingocollections.vim autoload script
 "
@@ -10,6 +11,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	006	29-Jan-2013	Replace s:ParsePatternArg() with
+"				ingocmdargs#ParsePatternArgument().
 "	005	15-Jan-2013	FIX: Need to use numerical sort() on line
 "				numbers.
 "	004	14-Sep-2012	Split off documentation and autoload script.
@@ -26,26 +29,9 @@
 "				winrestview().
 "	001	09-Dec-2010	file creation
 
-function! s:ParsePatternArg( args )
-    let l:matches = matchlist(a:args, '\V\^\(\i\@!\S\)\(\.\*\)\1\s\*\(\[a-zA-Z0-9-"*+_/]\)\?\s\*\$')
-    if empty(a:args)
-	" Corner case: No argument given; use previous search pattern and the
-	" unnamed register.
-	let [l:pattern, l:register] = ['', '']
-    elseif empty(l:matches)
-	" No pattern separator and register; use entire argument as pattern and
-	" the unnamed register.
-	let [l:pattern, l:register] = [a:args, '']
-    else
-	let [l:pattern, l:register] = l:matches[2:3]
-    endif
+function! ExtractMatchesToReg#GrepToReg( firstLine, lastLine, arguments, isNonMatchingLines )
+    let [l:pattern, l:register] = ingocmdargs#UnescapePatternArgument(ingocmdargs#ParsePatternArgument(a:arguments, '\s*\([a-zA-Z0-9-"*+_/]\)\?'))
     let l:register = (empty(l:register) ? '"' : l:register)
-
-    return [l:pattern, l:register]
-endfunction
-
-function! ExtractMatchesToReg#GrepToReg( firstLine, lastLine, args, isNonMatchingLines )
-    let [l:pattern, l:register] = s:ParsePatternArg(a:args)
 
     let l:save_view = winsaveview()
 	let l:matchingLines = {}
@@ -91,8 +77,9 @@ function! s:UniqueAdd( list, expr )
 	call add(a:list, a:expr)
     endif
 endfunction
-function! ExtractMatchesToReg#CopyMatchesToReg( firstLine, lastLine, args, isOnlyFirstMatch, isUnique )
-    let [l:pattern, l:register] = s:ParsePatternArg(a:args)
+function! ExtractMatchesToReg#CopyMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
+    let [l:pattern, l:register] = ingocmdargs#UnescapePatternArgument(ingocmdargs#ParsePatternArgument(a:arguments, '\s*\([a-zA-Z0-9-"*+_/]\)\?'))
+    let l:register = (empty(l:register) ? '"' : l:register)
 
     let l:save_view = winsaveview()
 	let l:matches = []
