@@ -1,6 +1,7 @@
 " ExtractMatchesToReg.vim: Yank matches from range into a register.
 "
 " DEPENDENCIES:
+"   - ingo/msg.vim autoload script
 "   - ingocmdargs.vim autoload script
 "   - ingointegration.vim autoload script
 "   - ingocollections.vim autoload script
@@ -13,6 +14,9 @@
 " REVISION	DATE		REMARKS
 "	006	29-Jan-2013	Replace s:ParsePatternArg() with
 "				ingocmdargs#ParsePatternArgument().
+"				ENH: Allow optional /{replacement}/ part for
+"				:CopyMatchesToReg.
+"				Use ingo#msg#ErrorMsg().
 "	005	15-Jan-2013	FIX: Need to use numerical sort() on line
 "				numbers.
 "	004	14-Sep-2012	Split off documentation and autoload script.
@@ -30,7 +34,7 @@
 "	001	09-Dec-2010	file creation
 
 function! ExtractMatchesToReg#GrepToReg( firstLine, lastLine, arguments, isNonMatchingLines )
-    let [l:pattern, l:register] = ingocmdargs#UnescapePatternArgument(ingocmdargs#ParsePatternArgument(a:arguments, '\s*\([a-zA-Z0-9-"*+_/]\)\?'))
+    let [l:pattern, l:register] = ingocmdargs#UnescapePatternArgument(ingocmdargs#ParsePatternArgument(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?'))
     let l:register = (empty(l:register) ? '"' : l:register)
 
     let l:save_view = winsaveview()
@@ -54,10 +58,7 @@ function! ExtractMatchesToReg#GrepToReg( firstLine, lastLine, arguments, isNonMa
     call winrestview(l:save_view)
 
     if l:cnt == 0
-	let v:errmsg = 'E486: Pattern not found: ' . l:pattern
-	echohl ErrorMsg
-	echomsg v:errmsg
-	echohl None
+	call ingo#msg#ErrorMsg('E486: Pattern not found: ' . l:pattern)
     else
 "****D echomsg l:cnt string(sort(keys(l:matchingLines),'ingocollections#numsort'))
 	if a:isNonMatchingLines
@@ -78,9 +79,11 @@ function! s:UniqueAdd( list, expr )
     endif
 endfunction
 function! ExtractMatchesToReg#CopyMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
-    let [l:pattern, l:register] = ingocmdargs#UnescapePatternArgument(ingocmdargs#ParsePatternArgument(a:arguments, '\s*\([a-zA-Z0-9-"*+_/]\)\?'))
+    let [l:separator, l:pattern, l:replacement, l:register] = ingocmdargs#ParseSubstituteArgument(a:arguments, '', '', '\s*\([-a-zA-Z0-9"*+_/]\)\?')
     let l:register = (empty(l:register) ? '"' : l:register)
-
+    let l:pattern = ingocmdargs#UnescapePatternArgument([l:separator, l:pattern])
+    let l:replacement = ingocmdargs#UnescapePatternArgument([l:separator, l:replacement])
+"****D echomsg '****' string(l:pattern) string(l:replacement) string(l:register)
     let l:save_view = winsaveview()
 	let l:matches = []
 	call cursor(a:firstLine, 1)
@@ -92,6 +95,9 @@ function! ExtractMatchesToReg#CopyMatchesToReg( firstLine, lastLine, arguments, 
 	    let l:endPos = searchpos(l:pattern, 'ceW', a:lastLine)
 	    if l:endPos == [0, 0] | break | endif
 	    let l:match = ingointegration#GetText(l:startPos, l:endPos)
+	    if ! empty(l:replacement)
+		let l:match = substitute(l:match, (empty(l:pattern) ? @/, l:pattern), l:replacement, '')
+	    endif
 	    if a:isUnique
 		call s:UniqueAdd(l:matches, l:match)
 	    else
@@ -105,13 +111,15 @@ function! ExtractMatchesToReg#CopyMatchesToReg( firstLine, lastLine, arguments, 
     call winrestview(l:save_view)
 
     if len(l:matches) == 0
-	let v:errmsg = 'E486: Pattern not found: ' . l:pattern
-	echohl ErrorMsg
-	echomsg v:errmsg
-	echohl None
+	call ingo#msg#ErrorMsg('E486: Pattern not found: ' . l:pattern)
     else
-	let l:lines = join(l:matches, "\n")
-	call setreg(l:register, l:lines, 'V')
+	if empty(l:replacement)
+	    let l:lines = join(l:matches, "\n")
+	    call setreg(l:register, l:lines, 'V')
+	else
+	    let l:lines = join(l:matches, '')
+	    call setreg(l:register, l:lines)
+	endif
 
 	echo printf('%d %smatch%s yanked', len(l:matches), (a:isUnique ? 'unique ' : ''), (len(l:matches) == 1 ? '' : 'es'))
     endif
