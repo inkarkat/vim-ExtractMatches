@@ -1,0 +1,144 @@
+*ExtractMatches.txt*		Yank matches from range into a register.
+
+		      EXTRACT MATCHES    by Ingo Karkat
+							  *ExtractMatches.vim*
+description			|ExtractMatches-description|
+usage				|ExtractMatches-usage|
+installation			|ExtractMatches-installation|
+limitations			|ExtractMatches-limitations|
+known problems			|ExtractMatches-known-problems|
+todo				|ExtractMatches-todo|
+history				|ExtractMatches-history|
+
+==============================================================================
+DESCRIPTION					  *ExtractMatches-description*
+
+This plugin ...
+
+HOW IT WORKS								     *
+
+SOURCE									     *
+
+Implementation inspired by
+    http://vim.wikia.com/wiki/Copy_the_search_results_into_clipboard
+Use case inspired from a post by Luc Hermitte at
+    http://www.reddit.com/r/vim/comments/ef9zh/any_better_way_to_yank_all_lines_matching_pattern/
+
+ALTERNATIVES								     *
+
+One can employ a substitute-with-expression to capture the matches, as
+described in
+    http://stackoverflow.com/questions/9079561/how-to-extract-regex-matches-using-vim
+The idea is to use the side effect of |add()| in the expression, and force an
+empty return value from it through the inverse range of [1:0]. To avoid text
+modification, we make the pattern match nothing by appending |/\zs|; with
+this, \0 will be empty, so we have to capture the match as \1: >
+    let t=[] | %s/\(fo*)\zs/\=add(t, submatch(1))[1:0]/g
+Since this has the side effect of setting 'modified', anyway, we can
+alternatively have add() return the last added element [-1]; this saves us
+from the zero-width match and capture: >
+    let t=[] | %s/fo*/\=add(t, submatch(0))[-1]/g
+
+SEE ALSO								     *
+(Plugins offering complementary functionality, or plugins using this library.)
+
+RELATED WORKS								     *
+(Alternatives from other authors, other approaches, references not used here.)
+
+==============================================================================
+USAGE							*ExtractMatches-usage*
+								  *:GrepToReg*
+:[range]GrepToReg[!] /{pattern}/[x]
+:[range]GrepToReg[!] [{pattern}]
+			Yank all lines in [range] that match {pattern} (or the
+			last search pattern if omitted), with !: do not match,
+			into register [x] (or the unnamed register).
+							   *:CopyMatchesToReg*
+:[range]CopyMatchesToReg[!] /{pattern}/[x]
+:[range]CopyMatchesToReg[!] [{pattern}]
+			Copy text matching {pattern} (or the last search
+			pattern if omitted) in [range] into register [x] (or
+			the unnamed register). Each match is put on a new
+			line. This works like "grep -o". With [!]: Copy only
+			the first match in each line.
+:[range]CopyMatchesToReg[!] /{pattern}/{replacement}/[x]
+			Grab text matching {pattern} (or the last search
+			pattern if omitted) in [range], and put {replacement}
+			into register [x] (or the unnamed register). {pattern}
+			must not refer to the buffer (e.g. |/\%l|) and must
+			not use |/\zs| or |/\ze| for this to work. You can
+			refer to the match via |s/\&| and submatches (|s/\1|).
+			match is put on a new line. The matches are simply
+			concatenated without a newline character.
+			With [!]: Copy only the first match in each line.
+						     *:CopyUniqueMatchesToReg*
+:[range]CopyUniqueMatchesToReg[!] /{pattern}/[x]
+:[range]CopyUniqueMatchesToReg[!] [{pattern}]
+			Copy text matching {pattern} (or the last search
+			pattern if omitted) in [range] into register [x] (or
+			the unnamed register), but only once. Each match is
+			put on a new line. With [!]: Copy only the first match
+			in each line.
+:[range]CopyUniqueMatchesToReg[!] /{pattern}/{replacement}/[x]
+
+								 *:PutMatches*
+:[line]PutMatches[!] /{pattern}/
+:[line]PutMatches[!] [{pattern}]
+:[line]PutMatches[!] /{pattern}/{replacement}/
+			Put text matching {pattern} (or the last search pattern
+			if omitted) after [line] (default current line). Each
+			match is put on a new line (except when {replacement}
+			is specified; see |:CopyMatchesToReg|). This works
+			like "grep -o".
+			With [!]: Put only the first match in each line.
+			Cp. |:CopyMatchesToReg|.
+							   *:PutUniqueMatches*
+:[line]PutUniqueMatches[!] /{pattern}/
+:[line]PutUniqueMatches[!] [{pattern}]
+:[line]PutUniqueMatches[!] /{pattern}/{replacement}/
+			Put text matching {pattern} (or the last search pattern
+			if omitted) after [line] (default current line). Each
+			match is once put on a new line.
+			With [!]: Put only the first match in each line.
+			Cp. |:CopyUniqueMatchesToReg|.
+
+==============================================================================
+INSTALLATION					 *ExtractMatches-installation*
+
+This script is packaged as a |vimball|. If you have the "gunzip" decompressor
+in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
+the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
+vimball or via the |:UseVimball| command. >
+    vim ExtractMatches*.vmb.gz
+    :so %
+To uninstall, use the |:RmVimball| command.
+
+DEPENDENCIES					 *ExtractMatches-dependencies*
+
+- Requires Vim 7.0 or higher.
+
+==============================================================================
+LIMITATIONS					  *ExtractMatches-limitations*
+
+KNOWN PROBLEMS				       *ExtractMatches-known-problems*
+
+TODO							 *ExtractMatches-todo*
+
+IDEAS							*ExtractMatches-ideas*
+
+==============================================================================
+HISTORY						      *ExtractMatches-history*
+
+GOAL
+First published version.
+
+0.01	09-Dec-2010
+Started development.
+
+==============================================================================
+Copyright: (C) 2010-2013 Ingo Karkat
+The VIM LICENSE applies to this script; see |copyright|.
+
+Maintainer:	Ingo Karkat <ingo@karkat.de>
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:
