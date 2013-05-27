@@ -2,9 +2,9 @@
 "
 " DEPENDENCIES:
 "   - ingo/msg.vim autoload script
-"   - ingocmdargs.vim autoload script
+"   - ingo/cmdargs.vim autoload script
 "   - ingointegration.vim autoload script
-"   - ingocollections.vim autoload script
+"   - ingo/collections.vim autoload script
 "
 " Copyright: (C) 2010-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -12,6 +12,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	008	21-Feb-2013	Use ingo-library.
 "	007	30-Jan-2013	Move :PutMatches from ingocommands.vim here.
 "				Make it paste after the cursor when (due to
 "				replacement), the register is characterwise.
@@ -37,7 +38,7 @@
 "	001	09-Dec-2010	file creation
 
 function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchingLines )
-    let [l:pattern, l:register] = ingocmdargs#UnescapePatternArgument(ingocmdargs#ParsePatternArgument(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?'))
+    let [l:pattern, l:register] = ingo#cmdargs#UnescapePatternArgument(ingo#cmdargs#ParsePatternArgument(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?'))
     let l:register = (empty(l:register) ? '"' : l:register)
 
     let l:save_view = winsaveview()
@@ -63,11 +64,11 @@ function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchin
     if l:cnt == 0
 	call ingo#msg#ErrorMsg('E486: Pattern not found: ' . l:pattern)
     else
-"****D echomsg l:cnt string(sort(keys(l:matchingLines),'ingocollections#numsort'))
+"****D echomsg l:cnt string(sort(keys(l:matchingLines),'ingo#collections#numsort'))
 	if a:isNonMatchingLines
 	    let l:lineNums = filter(range(a:firstLine, a:lastLine), '! has_key(l:matchingLines, v:val)')
 	else
-	    let l:lineNums = sort(keys(l:matchingLines), 'ingocollections#numsort')
+	    let l:lineNums = sort(keys(l:matchingLines), 'ingo#collections#numsort')
 	endif
 	let l:lines = join(map(l:lineNums, 'getline(v:val)'), "\n")
 	call setreg(l:register, l:lines, 'V')
@@ -82,10 +83,10 @@ function! s:UniqueAdd( list, expr )
     endif
 endfunction
 function! ExtractMatches#CopyMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
-    let [l:separator, l:pattern, l:replacement, l:register] = ingocmdargs#ParseSubstituteArgument(a:arguments, '', '', '\s*\([-a-zA-Z0-9"*+_/]\)\?')
+    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#ParseSubstituteArgument(a:arguments, '', '', '\s*\([-a-zA-Z0-9"*+_/]\)\?')
     let l:register = (empty(l:register) ? '"' : l:register)
-    let l:pattern = ingocmdargs#UnescapePatternArgument([l:separator, l:pattern])
-    let l:replacement = ingocmdargs#UnescapePatternArgument([l:separator, l:replacement])
+    let l:pattern = ingo#cmdargs#UnescapePatternArgument([l:separator, l:pattern])
+    let l:replacement = ingo#cmdargs#UnescapePatternArgument([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement) string(l:register)
     let l:save_view = winsaveview()
 	let l:matches = []
