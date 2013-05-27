@@ -12,6 +12,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	009	28-May-2013	Rename Copy to Yank; it's the correct Vim
+"				terminology and more consistent with :yank.
 "	008	21-Feb-2013	Use ingo-library.
 "	007	30-Jan-2013	Move :PutMatches from ingocommands.vim here.
 "				Make it paste after the cursor when (due to
@@ -82,7 +84,7 @@ function! s:UniqueAdd( list, expr )
 	call add(a:list, a:expr)
     endif
 endfunction
-function! ExtractMatches#CopyMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
+function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
     let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#ParseSubstituteArgument(a:arguments, '', '', '\s*\([-a-zA-Z0-9"*+_/]\)\?')
     let l:register = (empty(l:register) ? '"' : l:register)
     let l:pattern = ingo#cmdargs#UnescapePatternArgument([l:separator, l:pattern])
@@ -136,7 +138,7 @@ function! ExtractMatches#PutMatches( lnum, arguments, isOnlyFirstMatch, isUnique
     let l:save_regmode = getregtype('"')
 
     try
-	execute 'Copy' . (a:isUnique ? 'Unique' : '') . 'MatchesToReg' . (a:isOnlyFirstMatch ? '!' : '') a:arguments
+	execute 'Yank' . (a:isUnique ? 'Unique' : '') . 'MatchesToReg' . (a:isOnlyFirstMatch ? '!' : '') a:arguments
 	if getregtype('"') ==# 'V'
 	    execute a:lnum . 'put'
 	else
