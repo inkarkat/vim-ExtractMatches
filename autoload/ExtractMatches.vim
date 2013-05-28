@@ -14,6 +14,9 @@
 " REVISION	DATE		REMARKS
 "	009	28-May-2013	Rename Copy to Yank; it's the correct Vim
 "				terminology and more consistent with :yank.
+"				Adapt to changed
+"				ingo#cmdargs#ParseSubstituteArgument() interface
+"				in ingo-library version 1.006.
 "	008	21-Feb-2013	Use ingo-library.
 "	007	30-Jan-2013	Move :PutMatches from ingocommands.vim here.
 "				Make it paste after the cursor when (due to
@@ -85,7 +88,7 @@ function! s:UniqueAdd( list, expr )
     endif
 endfunction
 function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
-    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#ParseSubstituteArgument(a:arguments, '', '', '\s*\([-a-zA-Z0-9"*+_/]\)\?')
+    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#ParseSubstituteArgument(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?', {'emptyReplacement': '', 'emptyFlags': ''})
     let l:register = (empty(l:register) ? '"' : l:register)
     let l:pattern = ingo#cmdargs#UnescapePatternArgument([l:separator, l:pattern])
     let l:replacement = ingo#cmdargs#UnescapePatternArgument([l:separator, l:replacement])
