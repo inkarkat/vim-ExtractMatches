@@ -26,8 +26,8 @@ Use case inspired from a post by Luc Hermitte at
 
 ALTERNATIVES								     *
 
-One can employ a substitute-with-expression to capture the matches, as
-described in
+One can employ a |sub-replace-expression| to capture the matches, as described
+in
     http://stackoverflow.com/questions/9079561/how-to-extract-regex-matches-using-vim
 The idea is to use the side effect of |add()| in the expression, and force an
 empty return value from it through the inverse range of [1:0]. To avoid text
@@ -40,7 +40,10 @@ from the zero-width match and capture: >
     let t=[] | %s/fo*/\=add(t, submatch(0))[-1]/g
 
 SEE ALSO								     *
-(Plugins offering complementary functionality, or plugins using this library.)
+
+- The |PatternsOnText.vim| plugin (vimscript #0000) provides commands that
+  print, substitute, or delete certain duplicates or matches directly in the
+  buffer.
 
 RELATED WORKS								     *
 (Alternatives from other authors, other approaches, references not used here.)
@@ -53,15 +56,15 @@ USAGE							*ExtractMatches-usage*
 			Yank all lines in [range] that match {pattern} (or the
 			last search pattern if omitted), with !: do not match,
 			into register [x] (or the unnamed register).
-							   *:CopyMatchesToReg*
-:[range]CopyMatchesToReg[!] /{pattern}/[x]
-:[range]CopyMatchesToReg[!] [{pattern}]
-			Copy text matching {pattern} (or the last search
+							   *:YankMatchesToReg*
+:[range]YankMatchesToReg[!] /{pattern}/[x]
+:[range]YankMatchesToReg[!] [{pattern}]
+			Yank text matching {pattern} (or the last search
 			pattern if omitted) in [range] into register [x] (or
 			the unnamed register). Each match is put on a new
-			line. This works like "grep -o". With [!]: Copy only
+			line. This works like "grep -o". With [!]: Yank only
 			the first match in each line.
-:[range]CopyMatchesToReg[!] /{pattern}/{replacement}/[x]
+:[range]YankMatchesToReg[!] /{pattern}/{replacement}/[x]
 			Grab text matching {pattern} (or the last search
 			pattern if omitted) in [range], and put {replacement}
 			into register [x] (or the unnamed register). {pattern}
@@ -70,16 +73,16 @@ USAGE							*ExtractMatches-usage*
 			refer to the match via |s/\&| and submatches (|s/\1|).
 			match is put on a new line. The matches are simply
 			concatenated without a newline character.
-			With [!]: Copy only the first match in each line.
-						     *:CopyUniqueMatchesToReg*
-:[range]CopyUniqueMatchesToReg[!] /{pattern}/[x]
-:[range]CopyUniqueMatchesToReg[!] [{pattern}]
-			Copy text matching {pattern} (or the last search
+			With [!]: Yank only the first match in each line.
+						     *:YankUniqueMatchesToReg*
+:[range]YankUniqueMatchesToReg[!] /{pattern}/[x]
+:[range]YankUniqueMatchesToReg[!] [{pattern}]
+			Yank text matching {pattern} (or the last search
 			pattern if omitted) in [range] into register [x] (or
 			the unnamed register), but only once. Each match is
-			put on a new line. With [!]: Copy only the first match
+			put on a new line. With [!]: Yank only the first match
 			in each line.
-:[range]CopyUniqueMatchesToReg[!] /{pattern}/{replacement}/[x]
+:[range]YankUniqueMatchesToReg[!] /{pattern}/{replacement}/[x]
 
 								 *:PutMatches*
 :[line]PutMatches[!] /{pattern}/
@@ -88,10 +91,10 @@ USAGE							*ExtractMatches-usage*
 			Put text matching {pattern} (or the last search pattern
 			if omitted) after [line] (default current line). Each
 			match is put on a new line (except when {replacement}
-			is specified; see |:CopyMatchesToReg|). This works
+			is specified; see |:YankMatchesToReg|). This works
 			like "grep -o".
 			With [!]: Put only the first match in each line.
-			Cp. |:CopyMatchesToReg|.
+			Cp. |:YankMatchesToReg|.
 							   *:PutUniqueMatches*
 :[line]PutUniqueMatches[!] /{pattern}/
 :[line]PutUniqueMatches[!] [{pattern}]
@@ -100,7 +103,7 @@ USAGE							*ExtractMatches-usage*
 			if omitted) after [line] (default current line). Each
 			match is once put on a new line.
 			With [!]: Put only the first match in each line.
-			Cp. |:CopyUniqueMatchesToReg|.
+			Cp. |:YankUniqueMatchesToReg|.
 
 ==============================================================================
 INSTALLATION					 *ExtractMatches-installation*
