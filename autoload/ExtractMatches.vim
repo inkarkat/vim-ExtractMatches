@@ -12,11 +12,13 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"	009	28-May-2013	Rename Copy to Yank; it's the correct Vim
-"				terminology and more consistent with :yank.
-"				Adapt to changed
+"   	010	29-May-2013	Adapt to changed
 "				ingo#cmdargs#ParseSubstituteArgument() interface
 "				in ingo-library version 1.006.
+"				Handle the special case of omitted
+"				{replacement}, which the parser doesn't support.
+"	009	28-May-2013	Rename Copy to Yank; it's the correct Vim
+"				terminology and more consistent with :yank.
 "	008	21-Feb-2013	Use ingo-library.
 "	007	30-Jan-2013	Move :PutMatches from ingocommands.vim here.
 "				Make it paste after the cursor when (due to
@@ -41,6 +43,8 @@
 "				Tighten positioning of winsaveview() /
 "				winrestview().
 "	001	09-Dec-2010	file creation
+let s:save_cpo = &cpo
+set cpo&vim
 
 function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchingLines )
     let [l:pattern, l:register] = ingo#cmdargs#UnescapePatternArgument(ingo#cmdargs#ParsePatternArgument(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?'))
@@ -88,7 +92,16 @@ function! s:UniqueAdd( list, expr )
     endif
 endfunction
 function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
-    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#ParseSubstituteArgument(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?', {'emptyReplacement': '', 'emptyFlags': ''})
+    let l:registerExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
+    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#ParseSubstituteArgument(a:arguments, {
+    \   'flagsExpr': l:registerExpr, 'emptyReplacement': '', 'emptyFlags': ''
+    \})
+    if empty(l:register) && l:replacement =~# '^' . l:registerExpr . '$'
+	" In this command, {replacement} can be omitted; the following is then
+	" taken as the register.
+	let l:register = matchlist(l:replacement, '^' . l:registerExpr . '$')[1]
+	let l:replacement = ''
+    endif
     let l:register = (empty(l:register) ? '"' : l:register)
     let l:pattern = ingo#cmdargs#UnescapePatternArgument([l:separator, l:pattern])
     let l:replacement = ingo#cmdargs#UnescapePatternArgument([l:separator, l:replacement])
@@ -153,4 +166,6 @@ function! ExtractMatches#PutMatches( lnum, arguments, isOnlyFirstMatch, isUnique
     endtry
 endfunction
 
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
