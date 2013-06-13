@@ -2,7 +2,8 @@
 "
 " DEPENDENCIES:
 "   - ingo/msg.vim autoload script
-"   - ingo/cmdargs.vim autoload script
+"   - ingo/cmdargs/pattern.vim autoload script
+"   - ingo/cmdargs/substitute.vim autoload script
 "   - ingointegration.vim autoload script
 "   - ingo/collections.vim autoload script
 "
@@ -12,6 +13,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	011	01-Jun-2013	Move functions from ingo/cmdargs.vim to
+"				ingo/cmdargs/pattern.vim and
+"				ingo/cmdargs/substitute.vim.
 "   	010	29-May-2013	Adapt to changed
 "				ingo#cmdargs#ParseSubstituteArgument() interface
 "				in ingo-library version 1.006.
@@ -47,7 +51,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchingLines )
-    let [l:pattern, l:register] = ingo#cmdargs#UnescapePatternArgument(ingo#cmdargs#ParsePatternArgument(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?'))
+    let [l:pattern, l:register] = ingo#cmdargs#pattern#Unescape(ingo#cmdargs#pattern#Parse(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?'))
     let l:register = (empty(l:register) ? '"' : l:register)
 
     let l:save_view = winsaveview()
@@ -93,7 +97,7 @@ function! s:UniqueAdd( list, expr )
 endfunction
 function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
     let l:registerExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
-    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#ParseSubstituteArgument(a:arguments, {
+    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': l:registerExpr, 'emptyReplacement': '', 'emptyFlags': ''
     \})
     if empty(l:register) && l:replacement =~# '^' . l:registerExpr . '$'
@@ -103,8 +107,8 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
 	let l:replacement = ''
     endif
     let l:register = (empty(l:register) ? '"' : l:register)
-    let l:pattern = ingo#cmdargs#UnescapePatternArgument([l:separator, l:pattern])
-    let l:replacement = ingo#cmdargs#UnescapePatternArgument([l:separator, l:replacement])
+    let l:pattern = ingo#cmdargs#pattern#Unescape([l:separator, l:pattern])
+    let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement) string(l:register)
     let l:save_view = winsaveview()
 	let l:matches = []
