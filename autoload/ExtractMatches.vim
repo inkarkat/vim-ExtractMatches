@@ -13,6 +13,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   	012	14-Jun-2013	Minor: Make matchlist() robust against
+"				'ignorecase'.
 "	011	01-Jun-2013	Move functions from ingo/cmdargs.vim to
 "				ingo/cmdargs/pattern.vim and
 "				ingo/cmdargs/substitute.vim.
@@ -103,7 +105,7 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
     if empty(l:register) && l:replacement =~# '^' . l:registerExpr . '$'
 	" In this command, {replacement} can be omitted; the following is then
 	" taken as the register.
-	let l:register = matchlist(l:replacement, '^' . l:registerExpr . '$')[1]
+	let l:register = matchlist(l:replacement, '\C^' . l:registerExpr . '$')[1]
 	let l:replacement = ''
     endif
     let l:register = (empty(l:register) ? '"' : l:register)
