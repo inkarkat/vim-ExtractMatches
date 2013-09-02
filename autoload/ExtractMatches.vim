@@ -4,8 +4,8 @@
 "   - ingo/msg.vim autoload script
 "   - ingo/cmdargs/pattern.vim autoload script
 "   - ingo/cmdargs/substitute.vim autoload script
-"   - ingointegration.vim autoload script
 "   - ingo/collections.vim autoload script
+"   - ingo/text/.vim autoload script
 "
 " Copyright: (C) 2010-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -13,6 +13,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   	013	23-Jul-2013	Move ingointegration#GetText() into
+"				ingo-library.
 "   	012	14-Jun-2013	Minor: Make matchlist() robust against
 "				'ignorecase'.
 "	011	01-Jun-2013	Move functions from ingo/cmdargs.vim to
@@ -122,7 +124,7 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
 	    if l:startPos == [0, 0] | break | endif
 	    let l:endPos = searchpos(l:pattern, 'ceW', a:lastLine)
 	    if l:endPos == [0, 0] | break | endif
-	    let l:match = ingointegration#GetText(l:startPos, l:endPos)
+	    let l:match = ingo#text#Get(l:startPos, l:endPos)
 	    if ! empty(l:replacement)
 		let l:match = substitute(l:match, (empty(l:pattern) ? @/ : l:pattern), l:replacement, '')
 	    endif
