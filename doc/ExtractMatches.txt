@@ -41,7 +41,7 @@ from the zero-width match and capture: >
 
 SEE ALSO								     *
 
-- The |PatternsOnText.vim| plugin (vimscript #0000) provides commands that
+- The |PatternsOnText.vim| plugin (vimscript #4602) provides commands that
   print, substitute, or delete certain duplicates or matches directly in the
   buffer.
 
