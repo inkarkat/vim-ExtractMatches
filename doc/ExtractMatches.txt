@@ -46,7 +46,9 @@ SEE ALSO								     *
   buffer.
 
 RELATED WORKS								     *
-(Alternatives from other authors, other approaches, references not used here.)
+
+- The yankitute plugin (vimscript #4719) provides a similar
+  :[range]Yankitute[register]/{pattern}/[string]/[flags]/[join] command.
 
 ==============================================================================
 USAGE							*ExtractMatches-usage*
