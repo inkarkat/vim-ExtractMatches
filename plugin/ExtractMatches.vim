@@ -15,6 +15,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	006	28-May-2013	Rename Copy to Yank; it's the correct Vim
+"				terminology and more consistent with :yank.
 "	005	30-Jan-2013	Move :PutMatches from ingocommands.vim here.
 "	004	14-Sep-2012	Split off documentation and autoload script.
 "	003	11-May-2012	FIX: Correct non-identifier pattern to avoid
@@ -36,8 +38,8 @@ let g:loaded_ExtractMatches = 1
 
 command! -bang -nargs=? -range=% GrepToReg call ExtractMatches#GrepToReg(<line1>, <line2>, <q-args>, <bang>0)
 
-command! -bang -nargs=? -range=% CopyMatchesToReg       call ExtractMatches#CopyMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 0)
-command! -bang -nargs=? -range=% CopyUniqueMatchesToReg call ExtractMatches#CopyMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 1)
+command! -bang -nargs=? -range=% YankMatchesToReg       call ExtractMatches#YankMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 0)
+command! -bang -nargs=? -range=% YankUniqueMatchesToReg call ExtractMatches#YankMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 1)
 
 command! -bang -nargs=? -range=-1 PutMatches       call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<line2> == 1 ? <line1> : <line2> , <q-args>, <bang>0, 0)
 command! -bang -nargs=? -range=-1 PutUniqueMatches call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<line2> == 1 ? <line1> : <line2> , <q-args>, <bang>0, 1)
