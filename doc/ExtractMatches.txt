@@ -13,9 +13,11 @@ history				|ExtractMatches-history|
 ==============================================================================
 DESCRIPTION					  *ExtractMatches-description*
 
-This plugin ...
-
-HOW IT WORKS								     *
+This plugin provides a toolbox of commands to copy all (or only unique first)
+search matches / matches of a passed pattern / entire lines matching to a
+register, or directly |:put| them into the buffer. The commands are easier to
+remember and quicker to type than the various idioms for that, and they are
+robust, i.e. also support patterns spanning multiples lines.
 
 SOURCE									     *
 
@@ -52,6 +54,8 @@ RELATED WORKS								     *
 
 ==============================================================================
 USAGE							*ExtractMatches-usage*
+
+All commands default to the entire buffer if the [range] is omitted.
 								  *:GrepToReg*
 :[range]GrepToReg[!] /{pattern}/[x]
 :[range]GrepToReg[!] [{pattern}]
@@ -136,7 +140,7 @@ IDEAS							*ExtractMatches-ideas*
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
-GOAL
+1.00	16-Sep-2013
 First published version.
 
 0.01	09-Dec-2010
