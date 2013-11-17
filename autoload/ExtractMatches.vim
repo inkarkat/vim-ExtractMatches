@@ -14,7 +14,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"	014	03-Sep-2013	Factor out ingo#text#frompattern#Get() to yank
+"   1.00.014	03-Sep-2013	Factor out ingo#text#frompattern#Get() to yank
 "				into a List without all the user messages.
 "   	013	23-Jul-2013	Move ingointegration#GetText() into
 "				ingo-library.
