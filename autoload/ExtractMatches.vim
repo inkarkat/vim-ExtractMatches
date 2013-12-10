@@ -5,6 +5,7 @@
 "   - ingo/cmdargs/pattern.vim autoload script
 "   - ingo/cmdargs/substitute.vim autoload script
 "   - ingo/collections.vim autoload script
+"   - ingo/register.vim autoload script
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
 "
@@ -14,6 +15,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.01.015	18-Nov-2013	Use ingo#register#KeepRegisterExecuteOrFunc().
 "   1.00.014	03-Sep-2013	Factor out ingo#text#frompattern#Get() to yank
 "				into a List without all the user messages.
 "   	013	23-Jul-2013	Move ingointegration#GetText() into
@@ -131,22 +133,19 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
 endfunction
 
 function! ExtractMatches#PutMatches( lnum, arguments, isOnlyFirstMatch, isUnique )
-    let l:save_clipboard = &clipboard
-    set clipboard= " Avoid clobbering the selection and clipboard registers.
-    let l:save_reg = getreg('"')
-    let l:save_regmode = getregtype('"')
-
-    try
-	execute 'Yank' . (a:isUnique ? 'Unique' : '') . 'MatchesToReg' . (a:isOnlyFirstMatch ? '!' : '') a:arguments
-	if getregtype('"') ==# 'V'
-	    execute a:lnum . 'put'
-	else
-	    execute 'normal! a\<C-r>\<C-o>"\<Esc>'
-	endif
-    finally
-	call setreg('"', l:save_reg, l:save_regmode)
-	let &clipboard = l:save_clipboard
-    endtry
+    call ingo#register#KeepRegisterExecuteOrFunc(
+    \   function('ExtractMatches#YankAndPaste'),
+    \   'Yank' . (a:isUnique ? 'Unique' : '') . 'MatchesToReg' . (a:isOnlyFirstMatch ? '!' : '') . ' ' . a:arguments,
+    \   a:lnum
+    \)
+endfunction
+function! ExtractMatches#YankAndPaste( yankCommand, lnum )
+    execute a:yankCommand
+    if getregtype('"') ==# 'V'
+	execute a:lnum . 'put'
+    else
+	execute 'normal! a\<C-r>\<C-o>"\<Esc>'
+    endif
 endfunction
 
 let &cpo = s:save_cpo
