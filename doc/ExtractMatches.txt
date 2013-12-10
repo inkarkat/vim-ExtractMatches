@@ -125,7 +125,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					 *ExtractMatches-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.012 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.014 or
   higher.
 
 ==============================================================================
@@ -139,6 +139,10 @@ IDEAS							*ExtractMatches-ideas*
 
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
+
+1.01	RELEASEME
+- Use ingo#register#KeepRegisterExecuteOrFunc(). *** You need to update to
+  ingo-library (vimscript #4433) version 1.015! ***
 
 1.00	16-Sep-2013
 First published version.
