@@ -15,6 +15,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.016	20-Dec-2013	DWIM: When {replacement} is "&...", assume ...
+"				is a (literal) separator and remove it from the
+"				last element.
 "   1.00.015	18-Nov-2013	Use ingo#register#KeepRegisterExecuteOrFunc().
 "   1.00.014	03-Sep-2013	Factor out ingo#text#frompattern#Get() to yank
 "				into a List without all the user messages.
@@ -125,6 +128,11 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
 	    call setreg(l:register, l:lines, 'V')
 	else
 	    let l:lines = join(l:matches, '')
+	    if l:replacement =~# '^&.'
+		" DWIM: When {replacement} is "&...", assume ... is a (literal)
+		" separator and remove it from the last element
+		let l:lines = substitute(l:lines, '\V\C' . escape(l:replacement[1:], '\') . '\$', '', '')
+	    endif
 	    call setreg(l:register, l:lines)
 	endif
 
