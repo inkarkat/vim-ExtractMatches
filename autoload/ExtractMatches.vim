@@ -15,7 +15,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"   1.01.015	18-Nov-2013	Use ingo#register#KeepRegisterExecuteOrFunc().
+"   1.00.015	18-Nov-2013	Use ingo#register#KeepRegisterExecuteOrFunc().
 "   1.00.014	03-Sep-2013	Factor out ingo#text#frompattern#Get() to yank
 "				into a List without all the user messages.
 "   	013	23-Jul-2013	Move ingointegration#GetText() into
