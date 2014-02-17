@@ -143,7 +143,7 @@ IDEAS							*ExtractMatches-ideas*
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
-1.10	RELEASEME
+1.10	18-Feb-2014
 - DWIM: When {replacement} is "&...", assume ... is a (literal) separator and
   remove it from the last element.
 - Add heuristic that drops \zs, \ze, and all location-aware atoms (like \%v)
@@ -158,7 +158,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2010-2013 Ingo Karkat
+Copyright: (C) 2010-2014 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
