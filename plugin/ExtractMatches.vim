@@ -15,7 +15,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"	006	28-May-2013	Rename Copy to Yank; it's the correct Vim
+"   1.00.006	28-May-2013	Rename Copy to Yank; it's the correct Vim
 "				terminology and more consistent with :yank.
 "	005	30-Jan-2013	Move :PutMatches from ingocommands.vim here.
 "	004	14-Sep-2012	Split off documentation and autoload script.
