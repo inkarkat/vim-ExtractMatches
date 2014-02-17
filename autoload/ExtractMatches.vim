@@ -18,6 +18,11 @@
 "   1.10.016	20-Dec-2013	DWIM: When {replacement} is "&...", assume ...
 "				is a (literal) separator and remove it from the
 "				last element.
+"				Add heuristic that drops \zs, \ze, and all
+"				location-aware atoms (like \%v) for the separate
+"				substitution for {replacement}, to allow it to
+"				match. Beforehand, either nothing or the entire
+"				match have been wrongly returned as the result.
 "   1.00.015	18-Nov-2013	Use ingo#register#KeepRegisterExecuteOrFunc().
 "   1.00.014	03-Sep-2013	Factor out ingo#text#frompattern#Get() to yank
 "				into a List without all the user messages.
@@ -118,7 +123,34 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
     let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement) string(l:register)
 
-    let l:matches = ingo#text#frompattern#Get(a:firstLine, a:lastLine, l:pattern, l:replacement, a:isOnlyFirstMatch, a:isUnique)
+    let l:specialAtomExpr = '\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\\%(z[se]\|%[$^V#]\|%[<>]\?[''].\|%[<>]\?\d\+[lcv]\)'
+    if ! empty(l:replacement) && l:pattern =~# l:specialAtomExpr
+	" As there is no "match in buffer and return substitutions as string"
+	" function, the substitution for {replacement} has to be applied
+	" separately, on the extracted match. But then, context for {pattern} is
+	" lost, and neither location-aware atoms (like /\%v) nor lookahead /
+	" lookbehind can be used.
+
+	let l:replacePattern = l:pattern
+	" To alleviate that problem, we can at least add a heuristic to drop ...\zs
+	" and \ze... from the pattern (having fulfilled its limiting condition)
+	" for the replacement (which is now done on the sole match).
+	" Note: This simplistic rule won't correctly handle the atoms inside
+	" branches.
+	let l:replacePattern = substitute(l:replacePattern, '^.\{-}\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\zs', '', '')
+	let l:replacepattern = substitute(l:replacePattern, '\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\ze.\{-}$', '', '')
+
+	" Also remove any location-aware atoms; it's not guaranteed that this
+	" give the expected result, but it's better than disallowing a match in
+	" most cases.
+	let l:replacePattern = substitute(l:replacePattern, l:specialAtomExpr, '', 'g')
+
+	let l:specialReplacement = [l:replacePattern, l:replacement]
+    endif
+    let l:matches = ingo#text#frompattern#Get(a:firstLine, a:lastLine,
+    \   l:pattern, (exists('l:specialReplacement') ? l:specialReplacement : l:replacement),
+    \   a:isOnlyFirstMatch, a:isUnique
+    \)
 
     if len(l:matches) == 0
 	call ingo#msg#ErrorMsg('E486: Pattern not found: ' . l:pattern)
