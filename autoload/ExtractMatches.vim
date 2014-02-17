@@ -8,8 +8,10 @@
 "   - ingo/register.vim autoload script
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
+"   - PatternsOnText.vim autoload script (for :SubstituteAndYank)
+"   - PatternsOnText/Selected.vim autoload script (for :SubstituteAndYank)
 "
-" Copyright: (C) 2010-2013 Ingo Karkat
+" Copyright: (C) 2010-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -107,31 +109,16 @@ function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchin
     endif
 endfunction
 
-function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
-    let l:registerExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
-    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
-    \   'flagsExpr': l:registerExpr, 'emptyReplacement': '', 'emptyFlags': ''
-    \})
-    if empty(l:register) && l:replacement =~# '^' . l:registerExpr . '$'
-	" In this command, {replacement} can be omitted; the following is then
-	" taken as the register.
-	let l:register = matchlist(l:replacement, '\C^' . l:registerExpr . '$')[1]
-	let l:replacement = ''
-    endif
-    let l:register = (empty(l:register) ? '"' : l:register)
-    let l:pattern = ingo#cmdargs#pattern#Unescape([l:separator, l:pattern])
-    let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
-"****D echomsg '****' string(l:pattern) string(l:replacement) string(l:register)
-
+function! s:SpecialReplacement( pattern, replacement )
     let l:specialAtomExpr = '\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\\%(z[se]\|%[$^V#]\|%[<>]\?[''].\|%[<>]\?\d\+[lcv]\)'
-    if ! empty(l:replacement) && l:pattern =~# l:specialAtomExpr
+    if ! empty(a:replacement) && a:pattern =~# l:specialAtomExpr
 	" As there is no "match in buffer and return substitutions as string"
 	" function, the substitution for {replacement} has to be applied
 	" separately, on the extracted match. But then, context for {pattern} is
 	" lost, and neither location-aware atoms (like /\%v) nor lookahead /
 	" lookbehind can be used.
 
-	let l:replacePattern = l:pattern
+	let l:replacePattern = a:pattern
 	" To alleviate that problem, we can at least add a heuristic to drop ...\zs
 	" and \ze... from the pattern (having fulfilled its limiting condition)
 	" for the replacement (which is now done on the sole match).
@@ -145,10 +132,29 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
 	" most cases.
 	let l:replacePattern = substitute(l:replacePattern, l:specialAtomExpr, '', 'g')
 
-	let l:specialReplacement = [l:replacePattern, l:replacement]
+	return [l:replacePattern, a:replacement]
+    else
+	return a:replacement
     endif
+endfunction
+let s:registerExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
+function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
+    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
+    \   'flagsExpr': s:registerExpr, 'emptyReplacement': '', 'emptyFlags': ''
+    \})
+    if empty(l:register) && l:replacement =~# '^' . s:registerExpr . '$'
+	" In this command, {replacement} can be omitted; the following is then
+	" taken as the register.
+	let l:register = matchlist(l:replacement, '\C^' . s:registerExpr . '$')[1]
+	let l:replacement = ''
+    endif
+    let l:register = (empty(l:register) ? '"' : l:register)
+    let l:pattern = ingo#cmdargs#pattern#Unescape([l:separator, l:pattern])
+    let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
+"****D echomsg '****' string(l:pattern) string(l:replacement) string(l:register)
+
     let l:matches = ingo#text#frompattern#Get(a:firstLine, a:lastLine,
-    \   l:pattern, (exists('l:specialReplacement') ? l:specialReplacement : l:replacement),
+    \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
     \   a:isOnlyFirstMatch, a:isUnique
     \)
 
@@ -169,6 +175,87 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
 	endif
 
 	echo printf('%d %smatch%s yanked', len(l:matches), (a:isUnique ? 'unique ' : ''), (len(l:matches) == 1 ? '' : 'es'))
+    endif
+endfunction
+
+function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUnique )
+    let [l:separator, s:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
+    \   'flagsExpr': s:registerExpr, 'emptyReplacement': '', 'emptyFlags': ''
+    \})
+"****D echomsg '****' string([l:separator, s:pattern, l:replacement, l:register])
+    if l:register ==# l:separator
+	" Correct parser error; the trailing separator belongs to the
+	" (re-parsed) replacement; it isn't a register.
+	let l:replacement .= l:register
+	let l:register = ''
+    endif
+    try
+	let [s:substReplacement, l:substFlags, s:yankReplacement] = matchlist(l:replacement,
+	\   '\C^\(.*\)'.'\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\V' . l:separator . '\m\(&\?[cegiInp#lr]*\)\V' . l:separator . '\m\(.*\)$'
+	\)[1:3]
+    catch /^Vim\%((\a\+)\)\=:E688/ " E688: More targets than List items
+	call ingo#msg#ErrorMsg('Wrong syntax; pass /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]')
+	return
+    catch /^Vim\%((\a\+)\)\=:/
+	call ingo#msg#VimExceptionMsg()
+	return
+    catch
+	call ingo#msg#ErrorMsg(v:exception)    " Anything else.
+	return
+    endtry
+"****D echomsg '****' string([l:separator, s:pattern, l:replacement, l:register, s:substReplacement, l:substFlags, s:yankReplacement])
+    let l:accumulatorMatches = []
+    let l:accumulatorReplacements = []
+    try
+	execute printf('silent %d,%dsubstitute %s%s%s\=s:Collect(l:accumulatorMatches, l:accumulatorReplacements, %d)%s%s',
+	\   a:firstLine, a:lastLine, l:separator, s:pattern, l:separator,
+	\   a:isUnique, l:separator, l:substFlags
+	\)
+
+echomsg '****' string(l:accumulatorReplacements)
+    catch /^Vim\%((\a\+)\)\=:E/
+	call ingo#msg#VimExceptionMsg()
+    endtry
+endfunction
+function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
+    let l:match = submatch(0)
+    if a:isUnique
+	let l:idx = index(a:accumulatorMatches, l:match)
+	if l:idx == -1
+	    call add(a:accumulatorMatches, l:match)
+	    let l:idx = len(a:accumulatorMatches) - 1
+	endif
+    else
+	call add(a:accumulatorMatches, l:match)
+	let l:idx = len(a:accumulatorMatches) - 1
+    endif
+    if len(a:accumulatorReplacements) < l:idx + 1
+	" This is a newly added match; need to process the replacement here in
+	" order to be able to let sub-replace-expressions have access to
+	" context-dependent functions like submatch(), line(), etc.
+	call add(a:accumulatorReplacements, s:ReplaceYank(l:match))
+    endif
+
+    if s:substReplacement =~# '^\\='
+	" Handle sub-replace-special.
+	return eval(s:substReplacement[2:])
+    else
+	" Handle & and \0, \1 .. \9 (but not \u, \U, \n, etc.)
+	return PatternsOnText#ReplaceSpecial('', s:substReplacement, '\%(&\|\\[0-9]\)', function('PatternsOnText#Selected#ReplaceSpecial'))
+    endif
+endfunction
+function! s:ReplaceYank( match )
+    if empty(s:yankReplacement)
+	return ''
+    elseif s:yankReplacement =~# '^\\='
+	return eval(s:yankReplacement[2:])
+    else
+	let l:replacement = s:SpecialReplacement(s:pattern, s:yankReplacement)
+	if type(l:replacement) == type([])
+	    return substitute(a:match, l:replacement[0], l:replacement[1], 'g')
+	else
+	    return substitute(a:match, (empty(s:pattern) ? @/ : s:pattern), l:replacement, '')
+	endif
     endif
 endfunction
 
