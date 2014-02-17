@@ -77,8 +77,11 @@ All commands default to the entire buffer if the [range] is omitted.
 			must not refer to the buffer (e.g. |/\%l|) and must
 			not use |/\zs| or |/\ze| for this to work. You can
 			refer to the match via |s/\&| and submatches (|s/\1|).
-			match is put on a new line. The matches are simply
-			concatenated without a newline character.
+			The matches are simply concatenated without a newline
+			character here. Append \n at {replacement} to have
+			one. When {replacement} is "&...", ... is assumed to
+			be a (literal) separator and is removed from the last
+			element; if you don't want that, use \0 instead of &.
 			With [!]: Yank only the first match in each line.
 						     *:YankUniqueMatchesToReg*
 :[range]YankUniqueMatchesToReg[!] /{pattern}/[x]
@@ -139,6 +142,14 @@ IDEAS							*ExtractMatches-ideas*
 
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
+
+1.10	RELEASEME
+- DWIM: When {replacement} is "&...", assume ... is a (literal) separator and
+  remove it from the last element.
+- Add heuristic that drops \zs, \ze, and all location-aware atoms (like \%v)
+  for the separate substitution for {replacement}, to allow it to match.
+  Beforehand, either nothing or the entire match have been wrongly returned as
+  the result.
 
 1.00	11-Dec-2013
 First published version.
