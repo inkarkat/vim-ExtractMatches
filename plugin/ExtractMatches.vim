@@ -41,8 +41,8 @@ command! -bang -nargs=? -range=% GrepToReg call ExtractMatches#GrepToReg(<line1>
 command! -bang -nargs=? -range=% YankMatchesToReg       call ExtractMatches#YankMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 0)
 command! -bang -nargs=? -range=% YankUniqueMatchesToReg call ExtractMatches#YankMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 1)
 
-command!       -nargs=+ -range=% SubstituteAndYank       call ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 0)
-command!       -nargs=+ -range=% SubstituteAndYankUnique call ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 1)
+command!       -nargs=+ -range=% SubstituteAndYank       call setline(<line1>, getline(<line1>)) | call ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 0)
+command!       -nargs=+ -range=% SubstituteAndYankUnique call setline(<line1>, getline(<line1>)) | call ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 1)
 
 command! -bang -nargs=? -range=-1 PutMatches       call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<line2> == 1 ? <line1> : <line2> , <q-args>, <bang>0, 0)
 command! -bang -nargs=? -range=-1 PutUniqueMatches call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<line2> == 1 ? <line1> : <line2> , <q-args>, <bang>0, 1)
