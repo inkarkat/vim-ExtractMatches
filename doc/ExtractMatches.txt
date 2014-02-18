@@ -93,6 +93,23 @@ All commands default to the entire buffer if the [range] is omitted.
 			in each line.
 :[range]YankUniqueMatchesToReg[!] /{pattern}/{replacement}/[x]
 
+							  *:SubstituteAndYank*
+:[range]SubstituteAndYank /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]
+			Replace all matches of {pattern} in [range] / the
+			buffer with {replacement}, like with |:substitute|,
+			and put the {yank-replacement} into register [x] (or
+			the unnamed register).
+			Supports the same replacements as |:YankMatchesToReg|;
+			additionally,  \# is replaced with a (1-based) count
+			of the current yank and in a |sub-replace-expression|,
+			v:key stands for the 0-based index.
+						    *:SubstituteAndYankUnique*
+:[range]SubstituteAndYankUnique /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]
+			Like |:SubstituteAndYank|, but only add unique matches
+			to the register. For non-unique matches, \# and v:key
+			refer to the corresponding existing match in the
+			register.
+
 								 *:PutMatches*
 :[line]PutMatches[!] /{pattern}/
 :[line]PutMatches[!] [{pattern}]
@@ -130,6 +147,8 @@ DEPENDENCIES					 *ExtractMatches-dependencies*
 - Requires Vim 7.0 or higher.
 - Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.015 or
   higher.
+- Requires the |PatternsOnText.vim| plugin (vimscript #4602) for the
+  :SubstituteAndYank[Unique] commands.
 
 ==============================================================================
 LIMITATIONS					  *ExtractMatches-limitations*
@@ -142,6 +161,9 @@ IDEAS							*ExtractMatches-ideas*
 
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
+
+1.20	RELEASEME
+- Add :SubstituteAndYank and :SubstituteAndYankUnique commands.
 
 1.10	18-Feb-2014
 - DWIM: When {replacement} is "&...", assume ... is a (literal) separator and
