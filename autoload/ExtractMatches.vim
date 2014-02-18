@@ -207,6 +207,7 @@ function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUn
 	return
     endtry
 "****D echomsg '****' string([l:separator, s:pattern, l:replacement, l:register, s:substReplacement, l:substFlags, s:yankReplacement])
+
     let l:accumulatorMatches = []
     let l:accumulatorReplacements = []
     try
@@ -227,7 +228,7 @@ function! s:ExpandIndexInRepl( replacement, index )
     return substitute(a:replacement, '\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\#', a:index + 1, 'g')
 endfunction
 function! s:ExpandIndexInExpr( expr, index )
-    return substitute(a:expr, '\<v:key\>', "'" . a:index . "'", 'g')
+    return substitute(a:expr, '\<v:key\>', a:index, 'g')
 endfunction
 function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
     let l:match = submatch(0)
@@ -241,6 +242,7 @@ function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
 	call add(a:accumulatorMatches, l:match)
 	let l:idx = len(a:accumulatorMatches) - 1
     endif
+
     if len(a:accumulatorReplacements) < l:idx + 1
 	" This is a newly added match; need to process the replacement here in
 	" order to be able to let sub-replace-expressions have access to
