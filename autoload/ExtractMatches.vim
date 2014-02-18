@@ -17,6 +17,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.20.017	18-Feb-2014	Add :SubstituteAndYank[Unique] commands.
 "   1.10.016	20-Dec-2013	DWIM: When {replacement} is "&...", assume ...
 "				is a (literal) separator and remove it from the
 "				last element.
@@ -161,20 +162,22 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
     if len(l:matches) == 0
 	call ingo#msg#ErrorMsg('E486: Pattern not found: ' . l:pattern)
     else
-	if empty(l:replacement)
-	    let l:lines = join(l:matches, "\n")
-	    call setreg(l:register, l:lines, 'V')
-	else
-	    let l:lines = join(l:matches, '')
-	    if l:replacement =~# '^&.'
-		" DWIM: When {replacement} is "&...", assume ... is a (literal)
-		" separator and remove it from the last element
-		let l:lines = substitute(l:lines, '\V\C' . escape(l:replacement[1:], '\') . '\$', '', '')
-	    endif
-	    call setreg(l:register, l:lines)
-	endif
-
+	call s:PutMatchesToRegister(l:matches, l:replacement, l:register)
 	echo printf('%d %smatch%s yanked', len(l:matches), (a:isUnique ? 'unique ' : ''), (len(l:matches) == 1 ? '' : 'es'))
+    endif
+endfunction
+function! s:PutMatchesToRegister( matches, replacement, register )
+    if empty(a:replacement)
+	let l:lines = join(a:matches, "\n")
+	call setreg(a:register, l:lines, 'V')
+    else
+	let l:lines = join(a:matches, '')
+	if a:replacement =~# '^&.'
+	    " DWIM: When {replacement} is "&...", assume ... is a (literal)
+	    " separator and remove it from the last element
+	    let l:lines = substitute(l:lines, '\V\C' . escape(a:replacement[1:], '\') . '\$', '', '')
+	endif
+	call setreg(a:register, l:lines)
     endif
 endfunction
 
@@ -207,15 +210,24 @@ function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUn
     let l:accumulatorMatches = []
     let l:accumulatorReplacements = []
     try
-	execute printf('silent %d,%dsubstitute %s%s%s\=s:Collect(l:accumulatorMatches, l:accumulatorReplacements, %d)%s%s',
+	execute printf('%d,%dsubstitute %s%s%s\=s:Collect(l:accumulatorMatches, l:accumulatorReplacements, %d)%s%s',
 	\   a:firstLine, a:lastLine, l:separator, s:pattern, l:separator,
 	\   a:isUnique, l:separator, l:substFlags
 	\)
-
-echomsg '****' string(l:accumulatorReplacements)
+"****D echomsg '****' string(l:accumulatorReplacements)
+	if len(l:accumulatorReplacements) > 0
+	    call s:PutMatchesToRegister(l:accumulatorReplacements, s:yankReplacement, l:register)
+	    echo printf('%d %smatch%s yanked', len(l:accumulatorReplacements), (a:isUnique ? 'unique ' : ''), (len(l:accumulatorReplacements) == 1 ? '' : 'es'))
+	endif
     catch /^Vim\%((\a\+)\)\=:E/
 	call ingo#msg#VimExceptionMsg()
     endtry
+endfunction
+function! s:ExpandIndexInRepl( replacement, index )
+    return substitute(a:replacement, '\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\#', a:index + 1, 'g')
+endfunction
+function! s:ExpandIndexInExpr( expr, index )
+    return substitute(a:expr, '\<v:key\>', "'" . a:index . "'", 'g')
 endfunction
 function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
     let l:match = submatch(0)
@@ -233,24 +245,24 @@ function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
 	" This is a newly added match; need to process the replacement here in
 	" order to be able to let sub-replace-expressions have access to
 	" context-dependent functions like submatch(), line(), etc.
-	call add(a:accumulatorReplacements, s:ReplaceYank(l:match))
+	call add(a:accumulatorReplacements, s:ReplaceYank(l:match, l:idx))
     endif
 
     if s:substReplacement =~# '^\\='
 	" Handle sub-replace-special.
-	return eval(s:substReplacement[2:])
+	return eval(s:ExpandIndexInExpr(s:substReplacement[2:], l:idx))
     else
 	" Handle & and \0, \1 .. \9 (but not \u, \U, \n, etc.)
-	return PatternsOnText#ReplaceSpecial('', s:substReplacement, '\%(&\|\\[0-9]\)', function('PatternsOnText#Selected#ReplaceSpecial'))
+	return PatternsOnText#ReplaceSpecial('', s:ExpandIndexInRepl(s:substReplacement, l:idx), '\%(&\|\\[0-9]\)', function('PatternsOnText#Selected#ReplaceSpecial'))
     endif
 endfunction
-function! s:ReplaceYank( match )
+function! s:ReplaceYank( match, idx )
     if empty(s:yankReplacement)
 	return ''
     elseif s:yankReplacement =~# '^\\='
-	return eval(s:yankReplacement[2:])
+	return eval(s:ExpandIndexInExpr(s:yankReplacement[2:], a:idx))
     else
-	let l:replacement = s:SpecialReplacement(s:pattern, s:yankReplacement)
+	let l:replacement = s:SpecialReplacement(s:pattern, s:ExpandIndexInRepl(s:yankReplacement, a:idx))
 	if type(l:replacement) == type([])
 	    return substitute(a:match, l:replacement[0], l:replacement[1], 'g')
 	else
