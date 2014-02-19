@@ -96,9 +96,10 @@ All commands default to the entire buffer if the [range] is omitted.
 							  *:SubstituteAndYank*
 :[range]SubstituteAndYank /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]
 			Replace all matches of {pattern} in [range] / the
-			buffer with {replacement}, like with |:substitute|,
-			and put the {yank-replacement} into register [x] (or
-			the unnamed register).
+			buffer with {replacement}, like with |:substitute|
+			(using [flags] as |:s_flags|), and put the
+			{yank-replacement} (simply concatenated without a
+			newline) into register [x] (or the unnamed register).
 			Supports the same replacements as |:YankMatchesToReg|;
 			additionally,  \# is replaced with a (1-based) count
 			of the current yank and in a |sub-replace-expression|,
