@@ -1,10 +1,10 @@
 " ExtractMatches.vim: Yank matches from range into a register.
 "
 " DEPENDENCIES:
-"   - ingo/msg.vim autoload script
 "   - ingo/cmdargs/pattern.vim autoload script
 "   - ingo/cmdargs/substitute.vim autoload script
 "   - ingo/collections.vim autoload script
+"   - ingo/err.vim autoload script
 "   - ingo/register.vim autoload script
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
@@ -17,6 +17,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.20.018	19-Feb-2014	Switch to ingo/err.vim functions to properly
+"				abort the commands on error.
 "   1.20.017	18-Feb-2014	Add :SubstituteAndYank[Unique] commands.
 "   1.10.016	20-Dec-2013	DWIM: When {replacement} is "&...", assume ...
 "				is a (literal) separator and remove it from the
@@ -95,7 +97,8 @@ function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchin
     call winrestview(l:save_view)
 
     if l:cnt == 0
-	call ingo#msg#ErrorMsg('E486: Pattern not found: ' . l:pattern)
+	call ingo#err#Set('E486: Pattern not found: ' . l:pattern)
+	return 0
     else
 "****D echomsg l:cnt string(sort(keys(l:matchingLines),'ingo#collections#numsort'))
 	if a:isNonMatchingLines
@@ -107,6 +110,7 @@ function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchin
 	call setreg(l:register, l:lines, 'V')
 
 	echo printf('%d %s%s yanked', l:cnt, (l:isBlocks ? 'block' : 'line'), (l:cnt == 1 ? '' : 's'))
+	return 1
     endif
 endfunction
 
@@ -160,10 +164,12 @@ function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnl
     \)
 
     if len(l:matches) == 0
-	call ingo#msg#ErrorMsg('E486: Pattern not found: ' . l:pattern)
+	call ingo#err#Set('E486: Pattern not found: ' . l:pattern)
+	return 0
     else
 	call s:PutMatchesToRegister(l:matches, l:replacement, l:register)
 	echo printf('%d %smatch%s yanked', len(l:matches), (a:isUnique ? 'unique ' : ''), (len(l:matches) == 1 ? '' : 'es'))
+	return 1
     endif
 endfunction
 function! s:PutMatchesToRegister( matches, replacement, register )
@@ -197,14 +203,14 @@ function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUn
 	\   '\C^\(.*\)'.'\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\V' . l:separator . '\m\(&\?[cegiInp#lr]*\)\V' . l:separator . '\m\(.*\)$'
 	\)[1:3]
     catch /^Vim\%((\a\+)\)\=:E688/ " E688: More targets than List items
-	call ingo#msg#ErrorMsg('Wrong syntax; pass /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]')
-	return
+	call ingo#err#Set('Wrong syntax; pass /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]')
+	return 0
     catch /^Vim\%((\a\+)\)\=:/
-	call ingo#msg#VimExceptionMsg()
-	return
+	call ingo#err#SetVimException()
+	return 0
     catch
-	call ingo#msg#ErrorMsg(v:exception)    " Anything else.
-	return
+	call ingo#err#SetVimException()    " Anything else.
+	return 0
     endtry
 "****D echomsg '****' string([l:separator, s:pattern, l:replacement, l:register, s:substReplacement, l:substFlags, s:yankReplacement])
 
@@ -220,8 +226,10 @@ function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUn
 	    call s:PutMatchesToRegister(l:accumulatorReplacements, s:yankReplacement, l:register)
 	    echo printf('%d %smatch%s yanked', len(l:accumulatorReplacements), (a:isUnique ? 'unique ' : ''), (len(l:accumulatorReplacements) == 1 ? '' : 'es'))
 	endif
+	return 1
     catch /^Vim\%((\a\+)\)\=:E/
-	call ingo#msg#VimExceptionMsg()
+	call ingo#err#SetVimException()
+	return 0
     endtry
 endfunction
 function! s:ExpandIndexInRepl( replacement, index )
