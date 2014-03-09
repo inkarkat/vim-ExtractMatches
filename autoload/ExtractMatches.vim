@@ -5,6 +5,7 @@
 "   - ingo/cmdargs/substitute.vim autoload script
 "   - ingo/collections.vim autoload script
 "   - ingo/err.vim autoload script
+"   - ingo/escape.vim autoload script
 "   - ingo/register.vim autoload script
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
@@ -17,6 +18,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.20.019	20-Feb-2014	Add missing escaping of replacement parts in
+"				:SubstituteAndYank; as this is done by
+"				expressions, the separator character must be
+"				unescaped (except for sub-replace-expression,
+"				which must not contain the separator character).
 "   1.20.018	19-Feb-2014	Switch to ingo/err.vim functions to properly
 "				abort the commands on error.
 "   1.20.017	18-Feb-2014	Add :SubstituteAndYank[Unique] commands.
@@ -199,9 +205,11 @@ function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUn
 	let l:register = ''
     endif
     try
-	let [s:substReplacement, l:substFlags, s:yankReplacement] = matchlist(l:replacement,
+	let [l:substReplacement, l:substFlags, l:yankReplacement] = matchlist(l:replacement,
 	\   '\C^\(.*\)'.'\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\V' . l:separator . '\m\(&\?[cegiInp#lr]*\)\V' . l:separator . '\m\(.*\)$'
 	\)[1:3]
+	let s:substReplacement = (l:substReplacement =~# '^\\=' ? l:substReplacement : ingo#escape#Unescape(l:substReplacement, '\' . l:separator))
+	let s:yankReplacement = (l:yankReplacement =~# '^\\=' ? l:yankReplacement : ingo#escape#Unescape(l:yankReplacement, '\' . l:separator))
     catch /^Vim\%((\a\+)\)\=:E688/ " E688: More targets than List items
 	call ingo#err#Set('Wrong syntax; pass /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]')
 	return 0
