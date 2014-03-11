@@ -23,6 +23,11 @@
 "				FIX: Inline pasting (with replacements) doesn't
 "				use the specified line and doesn't create a new
 "				empty line.
+"				FIX: Typo in variable name prevented elimination
+"				of \ze.
+"				FIX: Remove escaping of a:replacement to apply
+"				the DWIM trailing separator removal also to \\,
+"				\n, \t etc.
 "   1.21.020	10-Mar-2014	Minor refactoring.
 "   1.20.019	20-Feb-2014	Add missing escaping of replacement parts in
 "				:SubstituteAndYank; as this is done by
@@ -144,7 +149,7 @@ function! s:SpecialReplacement( pattern, replacement )
 	" Note: This simplistic rule won't correctly handle the atoms inside
 	" branches.
 	let l:replacePattern = substitute(l:replacePattern, '^.\{-}\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\zs', '', '')
-	let l:replacepattern = substitute(l:replacePattern, '\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\ze.\{-}$', '', '')
+	let l:replacePattern = substitute(l:replacePattern, '\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\ze.\{-}$', '', '')
 
 	" Also remove any location-aware atoms; it's not guaranteed that this
 	" give the expected result, but it's better than disallowing a match in
@@ -194,7 +199,9 @@ function! s:PutMatchesToRegister( matches, replacement, register )
 	if a:replacement =~# '^&.'
 	    " DWIM: When {replacement} is "&...", assume ... is a (literal)
 	    " separator and remove it from the last element
-	    let l:lines = substitute(l:lines, '\V\C' . escape(a:replacement[1:], '\') . '\$', '', '')
+	    " Note: By not escaping a:replacement, this handles things like \\,
+	    " \n, \t etc., but isn't completely correct.
+	    let l:lines = substitute(l:lines, '\V\C' . a:replacement[1:] . '\$', '', '')
 	endif
 	call setreg(a:register, l:lines)
     endif
