@@ -18,6 +18,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.21.020	10-Mar-2014	Minor refactoring.
 "   1.20.019	20-Feb-2014	Add missing escaping of replacement parts in
 "				:SubstituteAndYank; as this is done by
 "				expressions, the separator character must be
@@ -78,8 +79,10 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
+let s:writableRegisterExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
+
 function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchingLines )
-    let [l:pattern, l:register] = ingo#cmdargs#pattern#Unescape(ingo#cmdargs#pattern#Parse(a:arguments, '\s*\([-a-zA-Z0-9"*+_/]\)\?'))
+    let [l:pattern, l:register] = ingo#cmdargs#pattern#Unescape(ingo#cmdargs#pattern#Parse(a:arguments, s:writableRegisterExpr))
     let l:register = (empty(l:register) ? '"' : l:register)
 
     let l:save_view = winsaveview()
@@ -148,15 +151,14 @@ function! s:SpecialReplacement( pattern, replacement )
 	return a:replacement
     endif
 endfunction
-let s:registerExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
 function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
     let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
-    \   'flagsExpr': s:registerExpr, 'emptyReplacement': '', 'emptyFlags': ''
+    \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
     \})
-    if empty(l:register) && l:replacement =~# '^' . s:registerExpr . '$'
+    if empty(l:register) && l:replacement =~# '^' . s:writableRegisterExpr . '$'
 	" In this command, {replacement} can be omitted; the following is then
 	" taken as the register.
-	let l:register = matchlist(l:replacement, '\C^' . s:registerExpr . '$')[1]
+	let l:register = matchlist(l:replacement, '\C^' . s:writableRegisterExpr . '$')[1]
 	let l:replacement = ''
     endif
     let l:register = (empty(l:register) ? '"' : l:register)
@@ -195,7 +197,7 @@ endfunction
 
 function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUnique )
     let [l:separator, s:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
-    \   'flagsExpr': s:registerExpr, 'emptyReplacement': '', 'emptyFlags': ''
+    \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
     \})
 "****D echomsg '****' string([l:separator, s:pattern, l:replacement, l:register])
     if l:register ==# l:separator
