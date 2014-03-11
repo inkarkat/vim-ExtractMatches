@@ -28,6 +28,10 @@
 "				FIX: Remove escaping of a:replacement to apply
 "				the DWIM trailing separator removal also to \\,
 "				\n, \t etc.
+"				Handle \r, \n, \t, \b in replacement, too.
+"				Rename :YankMatchesToReg[Unique] to
+"				:YankMatches[Unique], also for
+"				ExtractMatches#YankMatchesToReg().
 "   1.21.020	10-Mar-2014	Minor refactoring.
 "   1.20.019	20-Feb-2014	Add missing escaping of replacement parts in
 "				:SubstituteAndYank; as this is done by
@@ -161,7 +165,7 @@ function! s:SpecialReplacement( pattern, replacement )
 	return a:replacement
     endif
 endfunction
-function! ExtractMatches#YankMatchesToReg( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
+function! ExtractMatches#YankMatches( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
     let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
     \})
@@ -284,8 +288,8 @@ function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
 	" Handle sub-replace-special.
 	return eval(s:ExpandIndexInExpr(s:substReplacement[2:], l:idx))
     else
-	" Handle & and \0, \1 .. \9 (but not \u, \U, \n, etc.)
-	return PatternsOnText#ReplaceSpecial('', s:ExpandIndexInRepl(s:substReplacement, l:idx), '\%(&\|\\[0-9]\)', function('PatternsOnText#Selected#ReplaceSpecial'))
+	" Handle & and \0, \1 .. \9, and \r\n\t\b (but not \u, \U, etc.)
+	return PatternsOnText#ReplaceSpecial('', s:ExpandIndexInRepl(s:substReplacement, l:idx), '\%(&\|\\[0-9rnbt]\)', function('PatternsOnText#Selected#ReplaceSpecial'))
     endif
 endfunction
 function! s:ReplaceYank( match, idx )
@@ -306,7 +310,7 @@ endfunction
 function! ExtractMatches#PutMatches( lnum, arguments, isOnlyFirstMatch, isUnique )
     call ingo#register#KeepRegisterExecuteOrFunc(
     \   function('ExtractMatches#YankAndPaste'),
-    \   'Yank' . (a:isUnique ? 'Unique' : '') . 'MatchesToReg' . (a:isOnlyFirstMatch ? '!' : '') . ' ' . a:arguments,
+    \   'Yank' . (a:isUnique ? 'Unique' : '') . 'Matches' . (a:isOnlyFirstMatch ? '!' : '') . ' ' . a:arguments,
     \   a:lnum
     \)
 endfunction
