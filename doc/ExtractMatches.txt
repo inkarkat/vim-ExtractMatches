@@ -163,8 +163,9 @@ IDEAS							*ExtractMatches-ideas*
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
-1.20	RELEASEME
+1.20	20-Feb-2014
 - Add :SubstituteAndYank and :SubstituteAndYankUnique commands.
+- All commands now properly abort on errors.
 
 1.10	18-Feb-2014
 - DWIM: When {replacement} is "&...", assume ... is a (literal) separator and
