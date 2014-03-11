@@ -18,6 +18,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.30.021	12-Mar-2014	FIX: Inline pasting (with replacements) is
+"				broken due to wrong quoting.
+"				FIX: Inline pasting (with replacements) doesn't
+"				use the specified line and doesn't create a new
+"				empty line.
 "   1.21.020	10-Mar-2014	Minor refactoring.
 "   1.20.019	20-Feb-2014	Add missing escaping of replacement parts in
 "				:SubstituteAndYank; as this is done by
@@ -303,7 +308,7 @@ function! ExtractMatches#YankAndPaste( yankCommand, lnum )
     if getregtype('"') ==# 'V'
 	execute a:lnum . 'put'
     else
-	execute 'normal! a\<C-r>\<C-o>"\<Esc>'
+	execute a:lnum . "normal! o\<C-r>\<C-o>\"\<Esc>"
     endif
 endfunction
 
