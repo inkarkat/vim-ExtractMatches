@@ -93,8 +93,8 @@ All commands default to the entire buffer if the [range] is omitted.
 
 							  *:SubstituteAndYank*
 :[range]SubstituteAndYank /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]
-			Replace all matches of {pattern} in [range] / the
-			buffer with {replacement}, like with |:substitute|
+			Replace all matches of {pattern} in the current line /
+			[range] with {replacement}, like with |:substitute|
 			(using [flags] as |:s_flags|), and put the
 			{yank-replacement} (simply concatenated without a
 			newline) into register [x] (or the unnamed register).
@@ -164,6 +164,9 @@ HISTORY						      *ExtractMatches-history*
 1.30	RELEASEME
 - CHG: Rename :YankMatchesToReg[Unique] to :YankMatches[Unique]; the
   "register" part is implied by the yank.
+- CHG: Change default range of :SubstituteAndYank[Unique] to current line
+  instead of buffer, to be consistent with :substitute and the :Substitute...
+  commands defined by PatternsOnText.vim.
 - FIX: Inline pasting (with replacements) doesn't use the specified line and
   doesn't create a new empty line.
 - FIX: Typo in variable name prevented elimination of \ze.
