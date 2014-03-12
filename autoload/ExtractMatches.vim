@@ -22,7 +22,8 @@
 "				broken due to wrong quoting.
 "				FIX: Inline pasting (with replacements) doesn't
 "				use the specified line and doesn't create a new
-"				empty line.
+"				empty line. In fact, the entire conditional in
+"				ExtractMatches#YankAndPaste() isn't necessary.
 "				FIX: Typo in variable name prevented elimination
 "				of \ze.
 "				FIX: Remove escaping of a:replacement to apply
@@ -316,11 +317,7 @@ function! ExtractMatches#PutMatches( lnum, arguments, isOnlyFirstMatch, isUnique
 endfunction
 function! ExtractMatches#YankAndPaste( yankCommand, lnum )
     execute a:yankCommand
-    if getregtype('"') ==# 'V'
-	execute a:lnum . 'put'
-    else
-	execute a:lnum . "normal! o\<C-r>\<C-o>\"\<Esc>"
-    endif
+    execute a:lnum . 'put'
 endfunction
 
 let &cpo = s:save_cpo
