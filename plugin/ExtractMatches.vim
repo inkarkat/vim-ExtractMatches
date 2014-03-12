@@ -16,6 +16,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.30.009	13-Mar-2014	CHG: Change default range of
+"				:SubstituteAndYank[Unique] to current line
+"				instead of buffer, to be consistent with
+"				:substitute and the :Substitute... commands
+"				defined by PatternsOnText.vim.
 "   1.30.008	12-Mar-2014	Rename :YankMatchesToReg[Unique] to
 "				:YankMatches[Unique].
 "   1.20.007	19-Feb-2014	Switch to ingo/err.vim functions to properly
@@ -46,8 +51,8 @@ command! -bang -nargs=? -range=% GrepToReg if ! ExtractMatches#GrepToReg(<line1>
 command! -bang -nargs=? -range=% YankMatches       if ! ExtractMatches#YankMatches(<line1>, <line2>, <q-args>, <bang>0, 0) | echoerr ingo#err#Get() | endif
 command! -bang -nargs=? -range=% YankUniqueMatches if ! ExtractMatches#YankMatches(<line1>, <line2>, <q-args>, <bang>0, 1) | echoerr ingo#err#Get() | endif
 
-command!       -nargs=+ -range=% SubstituteAndYank       call setline(<line1>, getline(<line1>)) | if ! ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 0) | echoerr ingo#err#Get() | endif
-command!       -nargs=+ -range=% SubstituteAndYankUnique call setline(<line1>, getline(<line1>)) | if ! ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 1) | echoerr ingo#err#Get() | endif
+command!       -nargs=+ -range SubstituteAndYank       call setline(<line1>, getline(<line1>)) | if ! ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 0) | echoerr ingo#err#Get() | endif
+command!       -nargs=+ -range SubstituteAndYankUnique call setline(<line1>, getline(<line1>)) | if ! ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 1) | echoerr ingo#err#Get() | endif
 
 command! -bang -nargs=? -range=-1 PutMatches       call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<line2> == 1 ? <line1> : <line2> , <q-args>, <bang>0, 0)
 command! -bang -nargs=? -range=-1 PutUniqueMatches call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<line2> == 1 ? <line1> : <line2> , <q-args>, <bang>0, 1)
