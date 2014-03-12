@@ -18,6 +18,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.30.022	13-Mar-2014	When no replacement has been specified, yank the
+"				original matches with trailing newlines.
 "   1.30.021	12-Mar-2014	FIX: Inline pasting (with replacements) is
 "				broken due to wrong quoting.
 "				FIX: Inline pasting (with replacements) doesn't
@@ -295,7 +297,11 @@ function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
 endfunction
 function! s:ReplaceYank( match, idx )
     if empty(s:yankReplacement)
-	return ''
+	" When no replacement has been specified, yank the original matches with
+	" trailing newlines. This is consistent with :YankMatches/{pat}//, and
+	" better than simply returning nothing here, which would yank N-1
+	" newlines.
+	return a:match
     elseif s:yankReplacement =~# '^\\='
 	return eval(s:ExpandIndexInExpr(s:yankReplacement[2:], a:idx))
     else
