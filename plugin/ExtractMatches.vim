@@ -16,6 +16,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.30.008	12-Mar-2014	Rename :YankMatchesToReg[Unique] to
+"				:YankMatches[Unique].
 "   1.20.007	19-Feb-2014	Switch to ingo/err.vim functions to properly
 "				abort the commands on error.
 "   1.00.006	28-May-2013	Rename Copy to Yank; it's the correct Vim
@@ -41,8 +43,8 @@ let g:loaded_ExtractMatches = 1
 
 command! -bang -nargs=? -range=% GrepToReg if ! ExtractMatches#GrepToReg(<line1>, <line2>, <q-args>, <bang>0) | echoerr ingo#err#Get() | endif
 
-command! -bang -nargs=? -range=% YankMatchesToReg       if ! ExtractMatches#YankMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 0) | echoerr ingo#err#Get() | endif
-command! -bang -nargs=? -range=% YankUniqueMatchesToReg if ! ExtractMatches#YankMatchesToReg(<line1>, <line2>, <q-args>, <bang>0, 1) | echoerr ingo#err#Get() | endif
+command! -bang -nargs=? -range=% YankMatches       if ! ExtractMatches#YankMatches(<line1>, <line2>, <q-args>, <bang>0, 0) | echoerr ingo#err#Get() | endif
+command! -bang -nargs=? -range=% YankUniqueMatches if ! ExtractMatches#YankMatches(<line1>, <line2>, <q-args>, <bang>0, 1) | echoerr ingo#err#Get() | endif
 
 command!       -nargs=+ -range=% SubstituteAndYank       call setline(<line1>, getline(<line1>)) | if ! ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 0) | echoerr ingo#err#Get() | endif
 command!       -nargs=+ -range=% SubstituteAndYankUnique call setline(<line1>, getline(<line1>)) | if ! ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 1) | echoerr ingo#err#Get() | endif
