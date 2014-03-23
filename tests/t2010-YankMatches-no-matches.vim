@@ -5,7 +5,7 @@ call vimtap#Plan(2)
 let @a = ''
 edit text.txt
 try
-    YankMatchesToReg/doesNotExist/a
+    YankMatches/doesNotExist/a
     call vimtap#Fail('expected exception')
 catch
     call vimtap#err#Thrown('E486: Pattern not found: doesNotExist', 'error shown')
