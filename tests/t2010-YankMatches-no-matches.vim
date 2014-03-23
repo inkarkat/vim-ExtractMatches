@@ -4,12 +4,7 @@ call vimtest#StartTap()
 call vimtap#Plan(2)
 let @a = ''
 edit text.txt
-try
-    YankMatches/doesNotExist/a
-    call vimtap#Fail('expected exception')
-catch
-    call vimtap#err#Thrown('E486: Pattern not found: doesNotExist', 'error shown')
-endtry
+call vimtap#err#Errors('E486: Pattern not found: doesNotExist', 'YankMatches/doesNotExist/a', 'error shown')
 call vimtap#Is(@a, '', 'Register unchanged')
 
 call vimtest#Quit()
