@@ -20,6 +20,8 @@
 " REVISION	DATE		REMARKS
 "   1.30.022	13-Mar-2014	When no replacement has been specified, yank the
 "				original matches with trailing newlines.
+"				Extract s:JoinMatches().
+"				Implement :PrintMatches command.
 "   1.30.021	12-Mar-2014	FIX: Inline pasting (with replacements) is
 "				broken due to wrong quoting.
 "				FIX: Inline pasting (with replacements) doesn't
@@ -168,6 +170,31 @@ function! s:SpecialReplacement( pattern, replacement )
 	return a:replacement
     endif
 endfunction
+function! ExtractMatches#PrintMatches( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
+    let [l:separator, l:pattern, l:replacement] = ingo#cmdargs#substitute#Parse(a:arguments, {
+    \   'flagsExpr': '', 'emptyReplacement': '', 'emptyFlags': ''
+    \})
+    let l:pattern = ingo#cmdargs#pattern#Unescape([l:separator, l:pattern])
+    let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
+"****D echomsg '****' string(l:pattern) string(l:replacement)
+
+    let l:matches = ingo#text#frompattern#Get(a:firstLine, a:lastLine,
+    \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
+    \   a:isOnlyFirstMatch, a:isUnique
+    \)
+
+    if len(l:matches) == 0
+	call ingo#err#Set('E486: Pattern not found: ' . l:pattern)
+	return 0
+    else
+	if empty(l:replacement)
+	    echo join(l:matches, "\n")
+	else
+	    echo s:JoinMatches(l:matches, l:replacement)
+	endif
+	return 1
+    endif
+endfunction
 function! ExtractMatches#YankMatches( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
     let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
@@ -202,16 +229,19 @@ function! s:PutMatchesToRegister( matches, replacement, register )
 	let l:lines = join(a:matches, "\n")
 	call setreg(a:register, l:lines, 'V')
     else
-	let l:lines = join(a:matches, '')
-	if a:replacement =~# '^&.'
-	    " DWIM: When {replacement} is "&...", assume ... is a (literal)
-	    " separator and remove it from the last element
-	    " Note: By not escaping a:replacement, this handles things like \\,
-	    " \n, \t etc., but isn't completely correct.
-	    let l:lines = substitute(l:lines, '\V\C' . a:replacement[1:] . '\$', '', '')
-	endif
-	call setreg(a:register, l:lines)
+	call setreg(a:register, s:JoinMatches(a:matches, a:replacement))
     endif
+endfunction
+function! s:JoinMatches( matches, replacement )
+    let l:lines = join(a:matches, '')
+    if a:replacement =~# '^&.'
+	" DWIM: When {replacement} is "&...", assume ... is a (literal)
+	" separator and remove it from the last element
+	" Note: By not escaping a:replacement, this handles things like \\,
+	" \n, \t etc., but isn't completely correct.
+	let l:lines = substitute(l:lines, '\V\C' . a:replacement[1:] . '\$', '', '')
+    endif
+    return l:lines
 endfunction
 
 function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUnique )
