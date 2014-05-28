@@ -90,6 +90,21 @@ All commands default to the entire buffer if the [range] is omitted.
 			put on a new line. With [!]: Yank only the first match
 			in each line.
 :[range]YankUniqueMatches[!] /{pattern}/{replacement}/[x]
+							       *:PrintMatches*
+:[range]PrintMatches[!] /{pattern}/
+:[range]PrintMatches[!] [{pattern}]
+			Print text matching {pattern} (or the last search
+			pattern if omitted) in [range]. Each match is printed
+			on a new line. This works like "grep -o". With [!]:
+			Print only the first match in each line.
+:[range]PrintMatches[!] /{pattern}/{replacement}/
+			Like |:YankMatches|, but print the replacement instead
+			of yanking.			 *:PrintUniqueMatches*
+:[range]PrintUniqueMatches[!] /{pattern}/
+:[range]PrintUniqueMatches[!] [{pattern}]
+:[range]PrintUniqueMatches[!] /{pattern}/{replacement}/
+			Like |:YankUniqueMatches|, but print instead of
+			yanking.
 
 							  *:SubstituteAndYank*
 :[range]SubstituteAndYank /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]
@@ -161,12 +176,13 @@ IDEAS							*ExtractMatches-ideas*
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
-1.30	RELEASEME
-- CHG: Rename :YankMatchesToReg[Unique] to :YankMatches[Unique]; the
+1.30	13-Mar-2014
+- CHG: Rename :Yank[Unique]MatchesToReg to :Yank[Unique]Matches; the
   "register" part is implied by the yank.
 - CHG: Change default range of :SubstituteAndYank[Unique] to current line
   instead of buffer, to be consistent with :substitute and the :Substitute...
   commands defined by PatternsOnText.vim.
+- Add :Print[Unique]Matches variant of :Yank[Unique]Matches.
 - FIX: Inline pasting (with replacements) doesn't use the specified line and
   doesn't create a new empty line.
 - FIX: Typo in variable name prevented elimination of \ze.
