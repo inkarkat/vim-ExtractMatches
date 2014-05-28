@@ -286,7 +286,7 @@ function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUn
 	    echo printf('%d %smatch%s yanked', len(l:accumulatorReplacements), (a:isUnique ? 'unique ' : ''), (len(l:accumulatorReplacements) == 1 ? '' : 'es'))
 	endif
 	return 1
-    catch /^Vim\%((\a\+)\)\=:E/
+    catch /^Vim\%((\a\+)\)\=:/
 	call ingo#err#SetVimException()
 	return 0
     endtry
