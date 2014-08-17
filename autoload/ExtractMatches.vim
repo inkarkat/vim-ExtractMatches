@@ -18,6 +18,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.31.023	29-May-2014	Refactoring: Use
+"				ingo#cmdargs#pattern#ParseUnescaped().
 "   1.30.022	13-Mar-2014	When no replacement has been specified, yank the
 "				original matches with trailing newlines.
 "				Extract s:JoinMatches().
@@ -101,7 +103,7 @@ set cpo&vim
 let s:writableRegisterExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
 
 function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchingLines )
-    let [l:pattern, l:register] = ingo#cmdargs#pattern#Unescape(ingo#cmdargs#pattern#Parse(a:arguments, s:writableRegisterExpr))
+    let [l:pattern, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, s:writableRegisterExpr)
     let l:register = (empty(l:register) ? '"' : l:register)
 
     let l:save_view = winsaveview()
