@@ -159,7 +159,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					 *ExtractMatches-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.015 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.020 or
   higher.
 - Requires the |PatternsOnText.vim| plugin (vimscript #4602) for the
   :SubstituteAndYank[Unique] commands.
@@ -175,6 +175,10 @@ IDEAS							*ExtractMatches-ideas*
 
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
+
+1.31	RELEASEME
+- Refactoring: Use ingo#cmdargs#pattern#ParseUnescaped().
+  *** You need to update to ingo-library (vimscript #4433) version 1.020! ***
 
 1.30	13-Mar-2014
 - CHG: Rename :Yank[Unique]MatchesToReg to :Yank[Unique]Matches; the
