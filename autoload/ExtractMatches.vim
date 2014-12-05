@@ -263,7 +263,7 @@ function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUn
 	\)[1:3]
 	let s:substReplacement = (l:substReplacement =~# '^\\=' ? l:substReplacement : ingo#escape#Unescape(l:substReplacement, '\' . l:separator))
 	let s:yankReplacement = (l:yankReplacement =~# '^\\=' ? l:yankReplacement : ingo#escape#Unescape(l:yankReplacement, '\' . l:separator))
-    catch /^Vim\%((\a\+)\)\=:E688/ " E688: More targets than List items
+    catch /^Vim\%((\a\+)\)\=:E688:/ " E688: More targets than List items
 	call ingo#err#Set('Wrong syntax; pass /{pattern}/{replacement}/[flags]/{yank-replacement}/[x]')
 	return 0
     catch /^Vim\%((\a\+)\)\=:/
