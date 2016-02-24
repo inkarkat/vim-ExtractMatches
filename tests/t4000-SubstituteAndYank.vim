@@ -6,15 +6,15 @@ let @@ = ''
 let @a = ''
 edit text.txt
 
-SubstituteAndYank/\<fo\w\>/<&>/g/(&)/
+%SubstituteAndYank/\<fo\w\>/<&>/g/(&)/
 call vimtap#Is(@@, "(foo)(foo)(foo)(fox)(for)", 'Yank replacement matches to default register')
 
-SubstituteAndYank/\<...\(..\)\>/\0\1//(\1)/a
+%SubstituteAndYank/\<...\(..\)\>/\0\1//(\1)/a
 call vimtap#Is(@@, "(foo)(foo)(foo)(fox)(for)", 'Default register unchanged when register is specified')
-call vimtap#Is(@a, "(ti)(is)(em)", 'Yank replacement matches to default register')
+call vimtap#Is(@a, "(ti)(is)(em)", 'Yank replacement matches to register a')
 
 let @/ = '\<vehe\w\+'
-SubstituteAndYank//[\0]//(\0)/
+%SubstituteAndYank//[\0]//(\0)/
 call vimtap#Is(@@, "(vehementi)", 'Yank last search pattern')
 
 call vimtest#SaveOut()
