@@ -4,7 +4,7 @@ call vimtest#StartTap()
 call vimtap#Plan(3)
 let @@ = ''
 edit text.txt
-call vimtap#err#Errors('E486: Pattern not found: doesNotExist', 'SubstituteAndYank/doesNotExist/<&>/g/(&)/', 'error shown')
+call vimtap#err#ErrorsLike('E486: .*: doesNotExist', 'SubstituteAndYank/doesNotExist/<&>/g/(&)/', 'Pattern not found error shown')
 call vimtap#Ok(empty(@@), 'Default register not modified')
 call vimtap#Ok(&modified, 'Buffer is modified')
 
