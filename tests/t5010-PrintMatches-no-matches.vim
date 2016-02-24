@@ -3,11 +3,6 @@
 call vimtest#StartTap()
 call vimtap#Plan(1)
 edit text.txt
-try
-    PrintMatches/doesNotExist/
-    call vimtap#Fail('expected exception')
-catch
-    call vimtap#err#Thrown('E486: Pattern not found: doesNotExist', 'error shown')
-endtry
+call vimtap#err#ErrorsLike('^E486: .*: doesNotExist', 'PrintMatches/doesNotExist/', 'Pattern not found error shown')
 
 call vimtest#Quit()
