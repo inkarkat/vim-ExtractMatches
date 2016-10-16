@@ -18,6 +18,15 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.31.024	06-Dec-2014	BUG: :GrepToReg runs into endless loop when the
+"				last line of the buffer belongs to the range and
+"				is matching. This is because positioning one
+"				beyond the last line just keeps the cursor at
+"				the previous line, and repeats the last match.
+"				Shorter ranges are limited by the stopline of
+"				search() already. Note: We could limit the while
+"				condition to a:lastLnum, but would then have to
+"				translate folds ourselves.
 "   1.31.023	29-May-2014	Refactoring: Use
 "				ingo#cmdargs#pattern#ParseUnescaped().
 "   1.30.022	13-Mar-2014	When no replacement has been specified, yank the
@@ -102,7 +111,7 @@ set cpo&vim
 
 let s:writableRegisterExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
 
-function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchingLines )
+function! ExtractMatches#GrepToReg( firstLnum, lastLnum, arguments, isNonMatchingLines )
     let [l:pattern, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, s:writableRegisterExpr)
     let l:register = (empty(l:register) ? '"' : l:register)
 
@@ -110,19 +119,19 @@ function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchin
 	let l:matchingLines = {}
 	let l:cnt = 0
 	let l:isBlocks = 0
-	let l:startLine = a:firstLine
-	while 1
-	    call cursor(l:startLine, 1)
-	    let l:startLine = search(l:pattern, 'cnW', a:lastLine)
-	    if l:startLine == 0 | break | endif
-	    let l:endLine = search(l:pattern, 'cenW', a:lastLine)
-	    if l:endLine == 0 | break | endif
-	    for l:line in range(l:startLine, l:endLine)
+	let l:startLnum = a:firstLnum
+	while l:startLnum <= line('$')
+	    call cursor(l:startLnum, 1)
+	    let l:startLnum = search(l:pattern, 'cnW', a:lastLnum)
+	    if l:startLnum == 0 | break | endif
+	    let l:endLnum = search(l:pattern, 'cenW', a:lastLnum)
+	    if l:endLnum == 0 | break | endif
+	    for l:line in range(l:startLnum, l:endLnum)
 		let l:matchingLines[l:line] = 1
 	    endfor
 	    let l:cnt += 1
-	    let l:isBlocks = l:isBlocks || (l:startLine != l:endLine)
-	    let l:startLine += 1
+	    let l:isBlocks = l:isBlocks || (l:startLnum != l:endLnum)
+	    let l:startLnum += 1
 	endwhile
     call winrestview(l:save_view)
 
@@ -132,7 +141,7 @@ function! ExtractMatches#GrepToReg( firstLine, lastLine, arguments, isNonMatchin
     else
 "****D echomsg l:cnt string(sort(keys(l:matchingLines),'ingo#collections#numsort'))
 	if a:isNonMatchingLines
-	    let l:lineNums = filter(range(a:firstLine, a:lastLine), '! has_key(l:matchingLines, v:val)')
+	    let l:lineNums = filter(range(a:firstLnum, a:lastLnum), '! has_key(l:matchingLines, v:val)')
 	else
 	    let l:lineNums = sort(keys(l:matchingLines), 'ingo#collections#numsort')
 	endif
@@ -172,7 +181,7 @@ function! s:SpecialReplacement( pattern, replacement )
 	return a:replacement
     endif
 endfunction
-function! ExtractMatches#PrintMatches( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
+function! ExtractMatches#PrintMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
     let [l:separator, l:pattern, l:replacement] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': '', 'emptyReplacement': '', 'emptyFlags': ''
     \})
@@ -180,7 +189,7 @@ function! ExtractMatches#PrintMatches( firstLine, lastLine, arguments, isOnlyFir
     let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement)
 
-    let l:matches = ingo#text#frompattern#Get(a:firstLine, a:lastLine,
+    let l:matches = ingo#text#frompattern#Get(a:firstLnum, a:lastLnum,
     \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
     \   a:isOnlyFirstMatch, a:isUnique
     \)
@@ -197,7 +206,7 @@ function! ExtractMatches#PrintMatches( firstLine, lastLine, arguments, isOnlyFir
 	return 1
     endif
 endfunction
-function! ExtractMatches#YankMatches( firstLine, lastLine, arguments, isOnlyFirstMatch, isUnique )
+function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
     let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
     \})
@@ -212,7 +221,7 @@ function! ExtractMatches#YankMatches( firstLine, lastLine, arguments, isOnlyFirs
     let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement) string(l:register)
 
-    let l:matches = ingo#text#frompattern#Get(a:firstLine, a:lastLine,
+    let l:matches = ingo#text#frompattern#Get(a:firstLnum, a:lastLnum,
     \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
     \   a:isOnlyFirstMatch, a:isUnique
     \)
@@ -246,7 +255,7 @@ function! s:JoinMatches( matches, replacement )
     return l:lines
 endfunction
 
-function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUnique )
+function! ExtractMatches#SubstituteAndYank( firstLnum, lastLnum, arguments, isUnique )
     let [l:separator, s:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
     \})
@@ -279,7 +288,7 @@ function! ExtractMatches#SubstituteAndYank( firstLine, lastLine, arguments, isUn
     let l:accumulatorReplacements = []
     try
 	execute printf('%d,%dsubstitute %s%s%s\=s:Collect(l:accumulatorMatches, l:accumulatorReplacements, %d)%s%s',
-	\   a:firstLine, a:lastLine, l:separator, s:pattern, l:separator,
+	\   a:firstLnum, a:lastLnum, l:separator, s:pattern, l:separator,
 	\   a:isUnique, l:separator, l:substFlags
 	\)
 "****D echomsg '****' string(l:accumulatorReplacements)
