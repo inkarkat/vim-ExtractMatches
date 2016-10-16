@@ -176,7 +176,9 @@ IDEAS							*ExtractMatches-ideas*
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
-1.31	RELEASEME
+1.31	06-Dec-2014
+- BUG: :GrepToReg runs into endless loop when the last line of the buffer
+  belongs to the range and is matching.
 - Refactoring: Use ingo#cmdargs#pattern#ParseUnescaped().
   *** You need to update to ingo-library (vimscript #4433) version 1.020! ***
 
