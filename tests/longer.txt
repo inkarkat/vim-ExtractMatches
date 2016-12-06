@@ -1,0 +1,26 @@
+beginning
+some bar first
+{
+#START
+hi
+bar
+}
+{
+spacer one
+Estuans interius foo vehementi in bar loquor foo menti: factus de
+materia, cinis elementi similis cum folio, de quo ludunt venti.
+Cum sit foo.
+spacer two
+Stultus fox, for bar and baz and quux.
+spacer three
+}
+{
+gaga nolos
+comparor Foo flu labenti, sub eodem foobar tramite nunquam permanenti.
+}
+{
+bar
+#END
+}
+more bar
+end
