@@ -10,14 +10,16 @@
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
 "   - PatternsOnText.vim autoload script (for :SubstituteAndYank)
-"   - PatternsOnText/Selected.vim autoload script (for :SubstituteAndYank)
 "
-" Copyright: (C) 2010-2014 Ingo Karkat
+" Copyright: (C) 2010-2016 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.32.025	17-Oct-2016	In PatternsOnText.vim version 2.0,
+"				PatternsOnText#Selected#ReplaceSpecial() has
+"				been moved to PatternsOnText#DefaultReplacer().
 "   1.31.024	06-Dec-2014	BUG: :GrepToReg runs into endless loop when the
 "				last line of the buffer belongs to the range and
 "				is matching. This is because positioning one
@@ -333,7 +335,7 @@ function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
 	return eval(s:ExpandIndexInExpr(s:substReplacement[2:], l:idx))
     else
 	" Handle & and \0, \1 .. \9, and \r\n\t\b (but not \u, \U, etc.)
-	return PatternsOnText#ReplaceSpecial('', s:ExpandIndexInRepl(s:substReplacement, l:idx), '\%(&\|\\[0-9rnbt]\)', function('PatternsOnText#Selected#ReplaceSpecial'))
+	return PatternsOnText#ReplaceSpecial('', s:ExpandIndexInRepl(s:substReplacement, l:idx), '\%(&\|\\[0-9rnbt]\)', function('PatternsOnText#DefaultReplacer'))
     endif
 endfunction
 function! s:ReplaceYank( match, idx )
