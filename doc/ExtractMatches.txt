@@ -161,8 +161,8 @@ DEPENDENCIES					 *ExtractMatches-dependencies*
 - Requires Vim 7.0 or higher.
 - Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.020 or
   higher.
-- Requires the |PatternsOnText.vim| plugin (vimscript #4602) for the
-  :SubstituteAndYank[Unique] commands.
+- Requires the |PatternsOnText.vim| plugin (vimscript #4602), version 2.00 or
+  higher for the :SubstituteAndYank[Unique] commands.
 
 ==============================================================================
 LIMITATIONS					  *ExtractMatches-limitations*
@@ -175,6 +175,10 @@ IDEAS							*ExtractMatches-ideas*
 
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
+
+1.32	RELEASEME
+- In PatternsOnText.vim version 2.0, PatternsOnText#Selected#ReplaceSpecial()
+  has been moved to PatternsOnText#DefaultReplacer().
 
 1.31	06-Dec-2014
 - BUG: :GrepToReg runs into endless loop when the last line of the buffer
@@ -215,7 +219,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2010-2014 Ingo Karkat
+Copyright: (C) 2010-2016 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
