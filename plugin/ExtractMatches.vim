@@ -10,12 +10,13 @@
 "   Use case inspired from a post by Luc Hermitte at
 "	http://www.reddit.com/r/vim/comments/ef9zh/any_better_way_to_yank_all_lines_matching_pattern/
 
-" Copyright: (C) 2010-2014 Ingo Karkat
+" Copyright: (C) 2010-2016 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.40.010	07-Dec-2016	ENH: Add :GrepRangeToReg command.
 "   1.30.009	13-Mar-2014	CHG: Change default range of
 "				:SubstituteAndYank[Unique] to current line
 "				instead of buffer, to be consistent with
@@ -48,6 +49,7 @@ endif
 let g:loaded_ExtractMatches = 1
 
 command! -bang -nargs=? -range=% GrepToReg if ! ExtractMatches#GrepToReg(<line1>, <line2>, <q-args>, <bang>0) | echoerr ingo#err#Get() | endif
+command! -bang -nargs=? -range=% GrepRangeToReg if ! ExtractMatches#GrepRangeToReg(<line1>, <line2>, <q-args>, <bang>0) | echoerr ingo#err#Get() | endif
 
 command! -bang -nargs=? -range=% YankMatches       if ! ExtractMatches#YankMatches(<line1>, <line2>, <q-args>, <bang>0, 0) | echoerr ingo#err#Get() | endif
 command! -bang -nargs=? -range=% YankUniqueMatches if ! ExtractMatches#YankMatches(<line1>, <line2>, <q-args>, <bang>0, 1) | echoerr ingo#err#Get() | endif
