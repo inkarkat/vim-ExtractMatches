@@ -176,7 +176,7 @@ IDEAS							*ExtractMatches-ideas*
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
-1.32	RELEASEME
+1.32	07-Dec-2016
 - In PatternsOnText.vim version 2.0, PatternsOnText#Selected#ReplaceSpecial()
   has been moved to PatternsOnText#DefaultReplacer().
 
