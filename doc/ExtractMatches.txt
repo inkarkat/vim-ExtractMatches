@@ -62,6 +62,15 @@ All commands default to the entire buffer if the [range] is omitted.
 			Yank all lines in [range] that match {pattern} (or the
 			last search pattern if omitted), with !: do not match,
 			into register [x] (or the unnamed register).
+							     *:GrepRangeToReg*
+:[range]GrepRangeToReg[!] /{pattern}/ {range} [x]
+:[range]GrepRangeToReg[!] {range} [x]
+			Yank all lines in [range] that match {pattern} (or the
+			last search pattern if omitted), with !: do not match,
+			and all lines in {range} around it, into register [x]
+			(or the unnamed register).
+			With this, you can emulate grep's context line control
+			-A -B -C / --after-context --before-context --context
 								*:YankMatches*
 :[range]YankMatches[!] /{pattern}/[x]
 :[range]YankMatches[!] [{pattern}]
@@ -175,6 +184,9 @@ IDEAS							*ExtractMatches-ideas*
 
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
+
+1.40	RELEASEME
+- ENH: Add :GrepRangeToReg command.
 
 1.32	07-Dec-2016
 - In PatternsOnText.vim version 2.0, PatternsOnText#Selected#ReplaceSpecial()
