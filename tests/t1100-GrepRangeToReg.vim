@@ -16,6 +16,6 @@ call vimtap#Is(@a, "beginning\nsome bar first\n{\n#START\nhi\nbar\n}\n{\nspacer 
 
 let @/ = '\<vehe\w\+'
 GrepRangeToReg .-1,.+1
-call vimtap#Is(@@, "spacer one\nEstuans interius foo vehementi in bar loquor foo menti: factus de\nmateria, cinis elementi similis cum folio, de quo ludunt venti.\n", 'Yank last search pattern')
+call vimtap#Is(@@, "spacer one\nEstuans interius foo vehementi in bar loquor foo menti: factus de\nmateria, cinis elementi similis cum folio, de quo ludunt venti.\n", 'Yank last search pattern and one around')
 
 call vimtest#Quit()
