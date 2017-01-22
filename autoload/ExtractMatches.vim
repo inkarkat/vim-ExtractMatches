@@ -13,7 +13,7 @@
 "   - ingo/text/frompattern.vim autoload script
 "   - PatternsOnText.vim autoload script (for :SubstituteAndYank)
 "
-" Copyright: (C) 2010-2016 Ingo Karkat
+" Copyright: (C) 2010-2017 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -198,10 +198,10 @@ function! s:SpecialReplacement( pattern, replacement )
 	" lost, and neither location-aware atoms (like /\%v) nor lookahead /
 	" lookbehind can be used.
 
-	let l:replacePattern = a:pattern
 	" To alleviate that problem, we can at least add a heuristic to drop ...\zs
 	" and \ze... from the pattern (having fulfilled its limiting condition)
 	" for the replacement (which is now done on the sole match).
+	let l:replacePattern = ingo#regexp#magic#Normalize(a:pattern)
 	" Note: This simplistic rule won't correctly handle the atoms inside
 	" branches.
 	let l:replacePattern = substitute(l:replacePattern, '^.\{-}\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\zs', '', '')
