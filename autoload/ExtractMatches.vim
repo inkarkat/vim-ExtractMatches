@@ -2,10 +2,12 @@
 "
 " DEPENDENCIES:
 "   - ingo/cmdargs/pattern.vim autoload script
+"   - ingo/cmdargs/range.vim autoload script
 "   - ingo/cmdargs/substitute.vim autoload script
 "   - ingo/collections.vim autoload script
 "   - ingo/err.vim autoload script
 "   - ingo/escape.vim autoload script
+"   - ingo/range/lines.vim autoload script
 "   - ingo/register.vim autoload script
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
@@ -17,6 +19,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.40.026	07-Dec-2016	Factor out s:Grep. Handle grabbing not just the
+"				current line, but a range context around it.
+"				Add ExtractMatches#GrepRangeToReg().
 "   1.32.025	17-Oct-2016	In PatternsOnText.vim version 2.0,
 "				PatternsOnText#Selected#ReplaceSpecial() has
 "				been moved to PatternsOnText#DefaultReplacer().
@@ -113,32 +118,39 @@ set cpo&vim
 
 let s:writableRegisterExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
 
-function! ExtractMatches#GrepToReg( firstLnum, lastLnum, arguments, isNonMatchingLines )
-    let [l:pattern, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, s:writableRegisterExpr)
-    let l:register = (empty(l:register) ? '"' : l:register)
-
+function! s:Grep( firstLnum, lastLnum, isNonMatchingLines, pattern, range, register )
     let l:save_view = winsaveview()
 	let l:matchingLines = {}
 	let l:cnt = 0
 	let l:isBlocks = 0
+	let l:didClobberSearchHistory = 0
 	let l:startLnum = a:firstLnum
 	while l:startLnum <= line('$')
 	    call cursor(l:startLnum, 1)
-	    let l:startLnum = search(l:pattern, 'cnW', a:lastLnum)
+	    let l:startLnum = search(a:pattern, 'cnW', a:lastLnum)
 	    if l:startLnum == 0 | break | endif
-	    let l:endLnum = search(l:pattern, 'cenW', a:lastLnum)
+	    let l:endLnum = search(a:pattern, 'cenW', a:lastLnum)
 	    if l:endLnum == 0 | break | endif
 	    for l:line in range(l:startLnum, l:endLnum)
-		let l:matchingLines[l:line] = 1
+		if empty(a:range)
+		    let l:matchingLines[l:line] = 1
+		else
+		    call cursor(l:line, 1)
+		    let [l:linesInRange, l:ignoreStartLnums, l:ignoreEndLnums, l:didClobberSearchHistory] = ingo#range#lines#Get(a:firstLnum, a:lastLnum, a:range, 0)
+		    call extend(l:matchingLines, l:linesInRange)
+		endif
 	    endfor
 	    let l:cnt += 1
 	    let l:isBlocks = l:isBlocks || (l:startLnum != l:endLnum)
 	    let l:startLnum += 1
 	endwhile
     call winrestview(l:save_view)
+    if l:didClobberSearchHistory
+	call histdel('search', -1)
+    endif
 
     if l:cnt == 0
-	call ingo#err#Set('E486: Pattern not found: ' . l:pattern)
+	call ingo#err#Set('E486: Pattern not found: ' . (empty(a:pattern) ? @/ : a:pattern))
 	return 0
     else
 "****D echomsg l:cnt string(sort(keys(l:matchingLines),'ingo#collections#numsort'))
@@ -148,11 +160,33 @@ function! ExtractMatches#GrepToReg( firstLnum, lastLnum, arguments, isNonMatchin
 	    let l:lineNums = sort(keys(l:matchingLines), 'ingo#collections#numsort')
 	endif
 	let l:lines = join(map(l:lineNums, 'getline(v:val)'), "\n")
-	call setreg(l:register, l:lines, 'V')
+	call setreg(a:register, l:lines, 'V')
 
 	echo printf('%d %s%s yanked', l:cnt, (l:isBlocks ? 'block' : 'line'), (l:cnt == 1 ? '' : 's'))
 	return 1
     endif
+endfunction
+function! ExtractMatches#GrepToReg( firstLnum, lastLnum, arguments, isNonMatchingLines )
+    let [l:pattern, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, s:writableRegisterExpr)
+    let l:register = (empty(l:register) ? '"' : l:register)
+
+    return s:Grep(a:firstLnum, a:lastLnum, a:isNonMatchingLines, l:pattern, '', l:register)
+endfunction
+function! ExtractMatches#GrepRangeToReg( firstLnum, lastLnum, arguments, isNonMatchingLines )
+    let [l:pattern, l:range, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, '\s\+\(' . ingo#cmdargs#range#RangeExpr(). '\)\%(\s\+\(' . s:writableRegisterExpr . '\)\)\?', 2)
+    if empty(l:range) && ! empty(l:pattern) || l:pattern ==# a:arguments
+	" Prefer (mandatory) range over (optional) pattern; it might get parsed incorrectly.
+	let l:pattern = ''
+	let [l:range, l:register] = ingo#cmdargs#register#ParseAppendedWritableRegister(a:arguments, '[-+,;''[:alnum:][:space:]\\"|]\@![\x00-\xFF]')
+    endif
+    let l:register = (empty(l:register) ? '"' : l:register)
+
+    if empty(l:range)
+	call ingo#err#Set('Wrong syntax: Need to pass {range}')
+	return 0
+    endif
+"****Dechomsg '****' string([l:pattern, l:range, l:register])
+    return s:Grep(a:firstLnum, a:lastLnum, a:isNonMatchingLines, l:pattern, l:range, l:register)
 endfunction
 
 function! s:SpecialReplacement( pattern, replacement )
