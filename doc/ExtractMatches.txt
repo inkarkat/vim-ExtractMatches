@@ -71,6 +71,7 @@ All commands default to the entire buffer if the [range] is omitted.
 			(or the unnamed register).
 			With this, you can emulate grep's context line control
 			-A -B -C / --after-context --before-context --context
+			(but without the "--" group separator).
 								*:YankMatches*
 :[range]YankMatches[!] /{pattern}/[x]
 :[range]YankMatches[!] [{pattern}]
