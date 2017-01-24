@@ -169,7 +169,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					 *ExtractMatches-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.020 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.029 or
   higher.
 - Requires the |PatternsOnText.vim| plugin (vimscript #4602), version 2.00 or
   higher for the :SubstituteAndYank[Unique] commands.
@@ -186,8 +186,14 @@ IDEAS							*ExtractMatches-ideas*
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
-1.40	RELEASEME
+1.40	24-Jan-2017
 - ENH: Add :GrepRangeToReg command.
+- :YankMatches does not handle magicness modifier atoms (\v, \M, etc.) before
+  / after \zs / \ze. They get cut away, and then the remaining pattern does
+  not match any longer, and a custom {replacement} is not applied. Normalize
+  the magicness in the pattern. Additionally, also keep a case-sensitivity
+  atom (\c, \C). Reported by bjornmelgaard on Stack Overflow.
+  *** You need to update to ingo-library (vimscript #4433) version 1.029! ***
 
 1.32	07-Dec-2016
 - In PatternsOnText.vim version 2.0, PatternsOnText#Selected#ReplaceSpecial()
@@ -232,7 +238,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2010-2016 Ingo Karkat
+Copyright: (C) 2010-2017 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
