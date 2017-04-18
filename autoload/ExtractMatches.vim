@@ -8,7 +8,9 @@
 "   - ingo/err.vim autoload script
 "   - ingo/escape.vim autoload script
 "   - ingo/range/lines.vim autoload script
+"   - ingo/regexp/magic.vim autoload script
 "   - ingo/register.vim autoload script
+"   - ingo/subst.vim autoload script
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
 "   - PatternsOnText.vim autoload script (for :SubstituteAndYank)
@@ -19,6 +21,13 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.40.027    23-Jan-2017	:YankMatches does not handle magicness modifier
+"				atoms (\v, \M, etc.) before / after \zs / \ze.
+"				They get cut away, and then the remaining
+"				pattern does not match any longer, and a custom
+"				{replacement} is not applied. Normalize the
+"				magicness in the pattern. Additionally, also
+"				keep a case-sensitivity atom (\c, \C).
 "   1.40.026	07-Dec-2016	Factor out s:Grep. Handle grabbing not just the
 "				current line, but a range context around it.
 "				Add ExtractMatches#GrepRangeToReg().
@@ -201,11 +210,18 @@ function! s:SpecialReplacement( pattern, replacement )
 	" To alleviate that problem, we can at least add a heuristic to drop ...\zs
 	" and \ze... from the pattern (having fulfilled its limiting condition)
 	" for the replacement (which is now done on the sole match).
-	let l:replacePattern = ingo#regexp#magic#Normalize(a:pattern)
 	" Note: This simplistic rule won't correctly handle the atoms inside
 	" branches.
-	let l:replacePattern = substitute(l:replacePattern, '^.\{-}\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\zs', '', '')
-	let l:replacePattern = substitute(l:replacePattern, '\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\\ze.\{-}$', '', '')
+	" Note: Atoms that change the magicness or case sensitivity cannot
+	" simply be dropped. We can solve the former by normalizing them out. As
+	" the latter globally affect the entire pattern, we need to keep them.
+	let l:replacePattern = ingo#regexp#magic#Normalize(a:pattern)
+	let l:keepCaseSensitivityAtomPattern = '.*\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\(\\[cC]\)'
+	" Note: Optional /\?/ matching within the non-greedy /\{-}/ does not
+	" always capture; need to attempt matching with, then fall back to
+	" matching without the l:keepCaseSensitivityAtomPattern.
+	let l:replacePattern = ingo#subst#FirstParameter(l:replacePattern, '^%s.\{-}\%%(\%%(^\|[^\\]\)\%%(\\\\\)*\\\)\@<!\\zs', '\1', '', l:keepCaseSensitivityAtomPattern, '')[1]
+	let l:replacePattern = ingo#subst#FirstParameter(l:replacePattern, '\%%(\%%(^\|[^\\]\)\%%(\\\\\)*\\\)\@<!\\ze%s.\{-}$', '\1', '', l:keepCaseSensitivityAtomPattern, '')[1]
 
 	" Also remove any location-aware atoms; it's not guaranteed that this
 	" give the expected result, but it's better than disallowing a match in
