@@ -1,5 +1,6 @@
 " Test substituting and yanking all unique matches.
 
+call vimtest#SkipAndQuitIf(v:version < 704 || v:version == 704 && ! has('patch2119'), 'Need support for recursive sub-replace-expression')
 call vimtest#StartTap()
 call vimtap#Plan(4)
 let @@ = ''
