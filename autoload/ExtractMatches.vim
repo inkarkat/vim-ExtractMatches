@@ -220,8 +220,16 @@ function! s:SpecialReplacement( pattern, replacement )
 	" Note: Optional /\?/ matching within the non-greedy /\{-}/ does not
 	" always capture; need to attempt matching with, then fall back to
 	" matching without the l:keepCaseSensitivityAtomPattern.
-	let l:replacePattern = ingo#subst#FirstParameter(l:replacePattern, '^%s.\{-}\%%(\%%(^\|[^\\]\)\%%(\\\\\)*\\\)\@<!\\zs', '\1', '', l:keepCaseSensitivityAtomPattern, '')[1]
-	let l:replacePattern = ingo#subst#FirstParameter(l:replacePattern, '\%%(\%%(^\|[^\\]\)\%%(\\\\\)*\\\)\@<!\\ze%s.\{-}$', '\1', '', l:keepCaseSensitivityAtomPattern, '')[1]
+	" Note: When executed from :SubstituteAndYank[Unique], this function is
+	" invoked as part of :sub-replace-expression.
+	" ingo#subst#FirstParameter(), through ingo#format#Format() uses such
+	" itself. Vim 7.4.2218 and earlier cannot handle this, will garble the
+	" result, which leads to an "E867: (NFA) Unknown operator '\%%'" in
+	" t4100-SubstituteAndYankUnique.vim. Bad luck. As this function is also
+	" invoked from other (non-sub-replace-expression) places, just suppress
+	" the failure here.
+	silent! let l:replacePattern = ingo#subst#FirstParameter(l:replacePattern, '^%s.\{-}\%%(\%%(^\|[^\\]\)\%%(\\\\\)*\\\)\@<!\\zs', '\1', '', l:keepCaseSensitivityAtomPattern, '')[1]
+	silent! let l:replacePattern = ingo#subst#FirstParameter(l:replacePattern, '\%%(\%%(^\|[^\\]\)\%%(\\\\\)*\\\)\@<!\\ze%s.\{-}$', '\1', '', l:keepCaseSensitivityAtomPattern, '')[1]
 
 	" Also remove any location-aware atoms; it's not guaranteed that this
 	" give the expected result, but it's better than disallowing a match in
