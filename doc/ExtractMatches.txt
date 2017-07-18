@@ -51,6 +51,10 @@ RELATED WORKS								     *
 
 - The yankitute plugin (vimscript #4719) provides a similar
   :[range]Yankitute[register]/{pattern}/[string]/[flags]/[join] command.
+- yankmatches
+  (https://github.com/thoughtstream/Damian-Conway-s-Vim-Setup/blob/master/plugin/yankmatches.vim)
+  can yank / delete entire lines with / without matches, similar to
+  :GrepToReg.
 
 ==============================================================================
 USAGE							*ExtractMatches-usage*
