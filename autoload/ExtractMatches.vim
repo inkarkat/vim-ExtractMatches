@@ -11,9 +11,9 @@
 "   - ingo/regexp/magic.vim autoload script
 "   - ingo/register.vim autoload script
 "   - ingo/subst.vim autoload script
+"   - ingo/subst/replacement.vim autoload script
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
-"   - PatternsOnText.vim autoload script (for :SubstituteAndYank)
 "
 " Copyright: (C) 2010-2017 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -21,6 +21,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.41.028	19-Jul-2017	Move PatternsOnText#ReplaceSpecial(), and
+"				PatternsOnText#DefaultReplacer() to
+"				ingo-library.
 "   1.40.027    23-Jan-2017	:YankMatches does not handle magicness modifier
 "				atoms (\v, \M, etc.) before / after \zs / \ze.
 "				They get cut away, and then the remaining
@@ -393,7 +396,7 @@ function! s:Collect( accumulatorMatches, accumulatorReplacements, isUnique )
 	return eval(s:ExpandIndexInExpr(s:substReplacement[2:], l:idx))
     else
 	" Handle & and \0, \1 .. \9, and \r\n\t\b (but not \u, \U, etc.)
-	return PatternsOnText#ReplaceSpecial('', s:ExpandIndexInRepl(s:substReplacement, l:idx), '\%(&\|\\[0-9rnbt]\)', function('PatternsOnText#DefaultReplacer'))
+	return ingo#subst#replacement#ReplaceSpecial('', s:ExpandIndexInRepl(s:substReplacement, l:idx), '\%(&\|\\[0-9rnbt]\)', function('ingo#subst#replacement#DefaultReplacer'))
     endif
 endfunction
 function! s:ReplaceYank( match, idx )
