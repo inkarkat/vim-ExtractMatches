@@ -15,12 +15,14 @@
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
 "
-" Copyright: (C) 2010-2017 Ingo Karkat
+" Copyright: (C) 2010-2018 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.41.030	09-Aug-2018	Refactoring: Use
+"                               ingo#cmdargs#substitute#GetFlags().
 "   1.41.029	08-Nov-2017	Minor: Use ingo#register#Writable().
 "   1.41.028	19-Jul-2017	Move PatternsOnText#ReplaceSpecial(), and
 "				PatternsOnText#DefaultReplacer() to
@@ -332,7 +334,7 @@ function! ExtractMatches#SubstituteAndYank( firstLnum, lastLnum, arguments, isUn
     endif
     try
 	let [l:substReplacement, l:substFlags, l:yankReplacement] = matchlist(l:replacement,
-	\   '\C^\(.*\)'.'\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\V' . l:separator . '\m\(&\?[cegiInp#lr]*\)\V' . l:separator . '\m\(.*\)$'
+	\   '\C^\(.*\)'.'\%(\%(^\|[^\\]\)\%(\\\\\)*\\\)\@<!\V' . l:separator . '\m\(' . ingo#cmdargs#substitute#GetFlags() . '\)\V' . l:separator . '\m\(.*\)$'
 	\)[1:3]
 	let s:substReplacement = (l:substReplacement =~# '^\\=' ? l:substReplacement : ingo#escape#Unescape(l:substReplacement, '\' . l:separator))
 	let s:yankReplacement = (l:yankReplacement =~# '^\\=' ? l:yankReplacement : ingo#escape#Unescape(l:yankReplacement, '\' . l:separator))
