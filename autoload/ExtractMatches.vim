@@ -21,6 +21,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.41.029	08-Nov-2017	Minor: Use ingo#register#Writable().
 "   1.41.028	19-Jul-2017	Move PatternsOnText#ReplaceSpecial(), and
 "				PatternsOnText#DefaultReplacer() to
 "				ingo-library.
@@ -128,7 +129,7 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:writableRegisterExpr = '\s*\([-a-zA-Z0-9"*+_/]\)\?'
+let s:writableRegisterExpr = '\s*\(' . ingo#register#Writable() . '\)\?'
 
 function! s:Grep( firstLnum, lastLnum, isNonMatchingLines, pattern, range, register )
     let l:save_view = winsaveview()
