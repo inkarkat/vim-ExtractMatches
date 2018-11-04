@@ -10,37 +10,10 @@
 "   Use case inspired from a post by Luc Hermitte at
 "	http://www.reddit.com/r/vim/comments/ef9zh/any_better_way_to_yank_all_lines_matching_pattern/
 
-" Copyright: (C) 2010-2016 Ingo Karkat
+" Copyright: (C) 2010-2018 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
-"
-" REVISION	DATE		REMARKS
-"   1.40.010	07-Dec-2016	ENH: Add :GrepRangeToReg command.
-"   1.30.009	13-Mar-2014	CHG: Change default range of
-"				:SubstituteAndYank[Unique] to current line
-"				instead of buffer, to be consistent with
-"				:substitute and the :Substitute... commands
-"				defined by PatternsOnText.vim.
-"				Add :PrintMatches command.
-"   1.30.008	12-Mar-2014	Rename :YankMatchesToReg[Unique] to
-"				:YankMatches[Unique].
-"   1.20.007	19-Feb-2014	Switch to ingo/err.vim functions to properly
-"				abort the commands on error.
-"   1.00.006	28-May-2013	Rename Copy to Yank; it's the correct Vim
-"				terminology and more consistent with :yank.
-"	005	30-Jan-2013	Move :PutMatches from ingocommands.vim here.
-"	004	14-Sep-2012	Split off documentation and autoload script.
-"	003	11-May-2012	FIX: Correct non-identifier pattern to avoid
-"				matching surrounding whitespace.
-"	002	06-Dec-2011	Add :CopyUniqueMatchesToReg variation.
-"				Do not consider &report; in contrast to the
-"				built-in Vim commands, the result is
-"				indeterministic enough to always warrant a
-"				status message.
-"				Tighten positioning of winsaveview() /
-"				winrestview().
-"	001	09-Dec-2010	file creation
 
 " Avoid installing twice or when in unsupported Vim version.
 if exists('g:loaded_ExtractMatches') || (v:version < 700)
