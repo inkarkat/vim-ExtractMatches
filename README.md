@@ -185,7 +185,7 @@ below).
 HISTORY
 ------------------------------------------------------------------------------
 
-##### 1.41    RELEASEME
+##### 1.41    04-Nov-2018
 - Move PatternsOnText#ReplaceSpecial(), and PatternsOnText#DefaultReplacer()
   to ingo-library.
 - Does not require the PatternsOnText.vim plugin ([vimscript #4602](http://www.vim.org/scripts/script.php?script_id=4602)), version
