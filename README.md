@@ -1,4 +1,4 @@
-EXTRACT MATCHES   
+EXTRACT MATCHES
 ===============================================================================
 _by Ingo Karkat_
 
@@ -185,12 +185,17 @@ below).
 HISTORY
 ------------------------------------------------------------------------------
 
+##### 1.42    RELEASEME
+- BUG: :Grep[Range]ToReg and :{Print,Yank}[Unique]Matches do not consider all
+  lines when executed on a closed fold.
+
 ##### 1.41    04-Nov-2018
 - Move PatternsOnText#ReplaceSpecial(), and PatternsOnText#DefaultReplacer()
   to ingo-library.
 - Does not require the PatternsOnText.vim plugin ([vimscript #4602](http://www.vim.org/scripts/script.php?script_id=4602)), version
   2.00 or higher for the :SubstituteAndYank[Unique] commands any longer.
-  __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.035!__
+
+__You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.035!__
 
 ##### 1.40    24-Jan-2017
 - ENH: Add :GrepRangeToReg command.
@@ -199,7 +204,8 @@ HISTORY
   not match any longer, and a custom {replacement} is not applied. Normalize
   the magicness in the pattern. Additionally, also keep a case-sensitivity
   atom (\c, \C). Reported by bjornmelgaard on Stack Overflow.
-  __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.029!__
+
+__You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.029!__
 
 ##### 1.32    07-Dec-2016
 - In PatternsOnText.vim version 2.0, PatternsOnText#Selected#ReplaceSpecial()
@@ -209,7 +215,8 @@ HISTORY
 - BUG: :GrepToReg runs into endless loop when the last line of the buffer
   belongs to the range and is matching.
 - Refactoring: Use ingo#cmdargs#pattern#ParseUnescaped().
-  __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.020!__
+
+__You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.020!__
 
 ##### 1.30    13-Mar-2014
 - CHG: Rename :Yank[Unique]MatchesToReg to :Yank[Unique]Matches; the
@@ -244,7 +251,7 @@ HISTORY
 - Started development.
 
 ------------------------------------------------------------------------------
-Copyright: (C) 2010-2018 Ingo Karkat -
+Copyright: (C) 2010-2019 Ingo Karkat -
 The [VIM LICENSE](http://vimdoc.sourceforge.net/htmldoc/uganda.html#license) applies to this plugin.
 
 Maintainer:     Ingo Karkat <ingo@karkat.de>

@@ -15,7 +15,7 @@
 "   - ingo/text.vim autoload script
 "   - ingo/text/frompattern.vim autoload script
 "
-" Copyright: (C) 2010-2018 Ingo Karkat
+" Copyright: (C) 2010-2019 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -25,24 +25,26 @@ set cpo&vim
 let s:writableRegisterExpr = '\s*\(' . ingo#register#Writable() . '\)\?'
 
 function! s:Grep( firstLnum, lastLnum, isNonMatchingLines, pattern, range, register )
+    let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
+
     let l:save_view = winsaveview()
 	let l:matchingLines = {}
 	let l:cnt = 0
 	let l:isBlocks = 0
 	let l:didClobberSearchHistory = 0
-	let l:startLnum = a:firstLnum
+	let l:startLnum = l:firstLnum
 	while l:startLnum <= line('$')
 	    call cursor(l:startLnum, 1)
-	    let l:startLnum = search(a:pattern, 'cnW', a:lastLnum)
+	    let l:startLnum = search(a:pattern, 'cnW', l:lastLnum)
 	    if l:startLnum == 0 | break | endif
-	    let l:endLnum = search(a:pattern, 'cenW', a:lastLnum)
+	    let l:endLnum = search(a:pattern, 'cenW', l:lastLnum)
 	    if l:endLnum == 0 | break | endif
 	    for l:line in range(l:startLnum, l:endLnum)
 		if empty(a:range)
 		    let l:matchingLines[l:line] = 1
 		else
 		    call cursor(l:line, 1)
-		    let [l:linesInRange, l:ignoreStartLnums, l:ignoreEndLnums, l:didClobberSearchHistory] = ingo#range#lines#Get(a:firstLnum, a:lastLnum, a:range, 0)
+		    let [l:linesInRange, l:ignoreStartLnums, l:ignoreEndLnums, l:didClobberSearchHistory] = ingo#range#lines#Get(l:firstLnum, l:lastLnum, a:range, 0)
 		    call extend(l:matchingLines, l:linesInRange)
 		endif
 	    endfor
@@ -61,7 +63,7 @@ function! s:Grep( firstLnum, lastLnum, isNonMatchingLines, pattern, range, regis
     else
 "****D echomsg l:cnt string(sort(keys(l:matchingLines),'ingo#collections#numsort'))
 	if a:isNonMatchingLines
-	    let l:lineNums = filter(range(a:firstLnum, a:lastLnum), '! has_key(l:matchingLines, v:val)')
+	    let l:lineNums = filter(range(l:firstLnum, l:lastLnum), '! has_key(l:matchingLines, v:val)')
 	else
 	    let l:lineNums = sort(keys(l:matchingLines), 'ingo#collections#numsort')
 	endif
@@ -139,6 +141,8 @@ function! s:SpecialReplacement( pattern, replacement )
     endif
 endfunction
 function! ExtractMatches#PrintMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
+    let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
+
     let [l:separator, l:pattern, l:replacement] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': '', 'emptyReplacement': '', 'emptyFlags': ''
     \})
@@ -146,7 +150,7 @@ function! ExtractMatches#PrintMatches( firstLnum, lastLnum, arguments, isOnlyFir
     let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement)
 
-    let l:matches = ingo#text#frompattern#Get(a:firstLnum, a:lastLnum,
+    let l:matches = ingo#text#frompattern#Get(l:firstLnum, l:lastLnum,
     \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
     \   a:isOnlyFirstMatch, a:isUnique
     \)
@@ -164,6 +168,8 @@ function! ExtractMatches#PrintMatches( firstLnum, lastLnum, arguments, isOnlyFir
     endif
 endfunction
 function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
+    let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
+
     let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
     \})
@@ -178,7 +184,7 @@ function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirs
     let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement) string(l:register)
 
-    let l:matches = ingo#text#frompattern#Get(a:firstLnum, a:lastLnum,
+    let l:matches = ingo#text#frompattern#Get(l:firstLnum, l:lastLnum,
     \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
     \   a:isOnlyFirstMatch, a:isUnique
     \)
