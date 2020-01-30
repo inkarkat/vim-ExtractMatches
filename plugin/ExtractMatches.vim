@@ -1,8 +1,7 @@
 " ExtractMatches.vim: Yank matches from range into a register.
 "
 " DEPENDENCIES:
-"   - ExtractMatches.vim autoload script
-"   - ingo/err.vim autoload script
+"   - ingo-library.vim plugin
 "
 " Source:
 "   Implementation inspired by
@@ -10,7 +9,7 @@
 "   Use case inspired from a post by Luc Hermitte at
 "	http://www.reddit.com/r/vim/comments/ef9zh/any_better_way_to_yank_all_lines_matching_pattern/
 
-" Copyright: (C) 2010-2018 Ingo Karkat
+" Copyright: (C) 2010-2020 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -33,7 +32,7 @@ command! -bang -nargs=? -range=% PrintUniqueMatches if ! ExtractMatches#PrintMat
 command!       -nargs=+ -range SubstituteAndYank       call setline(<line1>, getline(<line1>)) | if ! ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 0) | echoerr ingo#err#Get() | endif
 command!       -nargs=+ -range SubstituteAndYankUnique call setline(<line1>, getline(<line1>)) | if ! ExtractMatches#SubstituteAndYank(<line1>, <line2>, <q-args>, 1) | echoerr ingo#err#Get() | endif
 
-command! -bang -nargs=? -range=-1 PutMatches       call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<line2> == 1 ? <line1> : <line2> , <q-args>, <bang>0, 0)
-command! -bang -nargs=? -range=-1 PutUniqueMatches call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<line2> == 1 ? <line1> : <line2> , <q-args>, <bang>0, 1)
+command! -bang -nargs=? -range=-1 PutMatches       call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<count> == -1 ? <line1> : <line2> , <q-args>, <bang>0, 0)
+command! -bang -nargs=? -range=-1 PutUniqueMatches call setline(<line1>, getline(<line1>)) | call ExtractMatches#PutMatches(<count> == -1 ? <line1> : <line2> , <q-args>, <bang>0, 1)
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

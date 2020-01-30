@@ -23,8 +23,8 @@ in
     http://stackoverflow.com/questions/9079561/how-to-extract-regex-matches-using-vim
 The idea is to use the side effect of add() in the expression, and force an
 empty return value from it through the inverse range of [1:0]. To avoid text
-modification, we make the pattern match nothing by appending /\zs; with
-this, \0 will be empty, so we have to capture the match as \1:
+modification, we make the pattern match nothing by appending /\\zs; with
+this, \\0 will be empty, so we have to capture the match as \\1:
 
     let t=[] | %s/\(fo*)\zs/\=add(t, submatch(1))[1:0]/g
 
@@ -188,6 +188,8 @@ HISTORY
 ##### 1.42    RELEASEME
 - BUG: :Grep[Range]ToReg and :{Print,Yank}[Unique]Matches do not consider all
   lines when executed on a closed fold.
+- Adapt: :Put[Unique]Matches need to check &lt;count&gt; == -1 instead of &lt;line2&gt; to
+  support current line as well as a lnum of 0 (since Vim 8.1.1241).
 
 ##### 1.41    04-Nov-2018
 - Move PatternsOnText#ReplaceSpecial(), and PatternsOnText#DefaultReplacer()
@@ -199,11 +201,11 @@ __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scrip
 
 ##### 1.40    24-Jan-2017
 - ENH: Add :GrepRangeToReg command.
-- :YankMatches does not handle magicness modifier atoms (\v, \M, etc.) before
-  / after \zs / \ze. They get cut away, and then the remaining pattern does
+- :YankMatches does not handle magicness modifier atoms (\\v, \\M, etc.) before
+  / after \\zs / \\ze. They get cut away, and then the remaining pattern does
   not match any longer, and a custom {replacement} is not applied. Normalize
   the magicness in the pattern. Additionally, also keep a case-sensitivity
-  atom (\c, \C). Reported by bjornmelgaard on Stack Overflow.
+  atom (\\c, \\C). Reported by bjornmelgaard on Stack Overflow.
 
 __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.029!__
 
@@ -227,19 +229,19 @@ __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scrip
 - Add :Print[Unique]Matches variant of :Yank[Unique]Matches.
 - FIX: Inline pasting (with replacements) doesn't use the specified line and
   doesn't create a new empty line.
-- FIX: Typo in variable name prevented elimination of \ze.
+- FIX: Typo in variable name prevented elimination of \\ze.
 - FIX: Remove escaping of a:replacement to apply the DWIM trailing separator
-  removal also to \\, \n, \t etc.
-- Handle \r, \n, \t, \b in replacement, too.
+  removal also to \\\\, \\n, \\t etc.
+- Handle \\r, \\n, \\t, \\b in replacement, too.
 
 ##### 1.20    20-Feb-2014
 - Add :SubstituteAndYank and :SubstituteAndYankUnique commands.
 - All commands now properly abort on errors.
 
 ##### 1.10    18-Feb-2014
-- DWIM: When {replacement} is "&...", assume ... is a (literal) separator and
+- DWIM: When {replacement} is "&amp;...", assume ... is a (literal) separator and
   remove it from the last element.
-- Add heuristic that drops \zs, \ze, and all location-aware atoms (like \%v)
+- Add heuristic that drops \\zs, \\ze, and all location-aware atoms (like \\%v)
   for the separate substitution for {replacement}, to allow it to match.
   Beforehand, either nothing or the entire match have been wrongly returned as
   the result.
@@ -251,7 +253,7 @@ __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scrip
 - Started development.
 
 ------------------------------------------------------------------------------
-Copyright: (C) 2010-2019 Ingo Karkat -
+Copyright: (C) 2010-2020 Ingo Karkat -
 The [VIM LICENSE](http://vimdoc.sourceforge.net/htmldoc/uganda.html#license) applies to this plugin.
 
-Maintainer:     Ingo Karkat <ingo@karkat.de>
+Maintainer:     Ingo Karkat &lt;ingo@karkat.de&gt;
