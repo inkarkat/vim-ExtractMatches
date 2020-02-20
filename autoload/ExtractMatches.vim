@@ -1,21 +1,9 @@
 " ExtractMatches.vim: Yank matches from range into a register.
 "
 " DEPENDENCIES:
-"   - ingo/cmdargs/pattern.vim autoload script
-"   - ingo/cmdargs/range.vim autoload script
-"   - ingo/cmdargs/substitute.vim autoload script
-"   - ingo/collections.vim autoload script
-"   - ingo/err.vim autoload script
-"   - ingo/escape.vim autoload script
-"   - ingo/range/lines.vim autoload script
-"   - ingo/regexp/magic.vim autoload script
-"   - ingo/register.vim autoload script
-"   - ingo/subst.vim autoload script
-"   - ingo/subst/replacement.vim autoload script
-"   - ingo/text.vim autoload script
-"   - ingo/text/frompattern.vim autoload script
+"   - ingo-library.vim plugin
 "
-" Copyright: (C) 2010-2019 Ingo Karkat
+" Copyright: (C) 2010-2020 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
