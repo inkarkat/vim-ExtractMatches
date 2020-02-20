@@ -185,7 +185,7 @@ below).
 HISTORY
 ------------------------------------------------------------------------------
 
-##### 1.42    RELEASEME
+##### 1.42    20-Feb-2020
 - BUG: :Grep[Range]ToReg and :{Print,Yank}[Unique]Matches do not consider all
   lines when executed on a closed fold.
 - Adapt: :Put[Unique]Matches need to check &lt;count&gt; == -1 instead of &lt;line2&gt; to
