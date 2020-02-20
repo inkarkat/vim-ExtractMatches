@@ -200,6 +200,12 @@ below).
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
+1.42	20-Feb-2020
+- BUG: :Grep[Range]ToReg and :{Print,Yank}[Unique]Matches do not consider all
+  lines when executed on a closed fold.
+- Adapt: :Put[Unique]Matches need to check <count> == -1 instead of <line2> to
+  support current line as well as a lnum of 0 (since Vim 8.1.1241).
+
 1.41	04-Nov-2018
 - Move PatternsOnText#ReplaceSpecial(), and PatternsOnText#DefaultReplacer()
   to ingo-library.
@@ -259,7 +265,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2010-2018 Ingo Karkat
+Copyright: (C) 2010-2020 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
