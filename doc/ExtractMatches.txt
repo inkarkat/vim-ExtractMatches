@@ -109,18 +109,21 @@ All commands default to the entire buffer if the [range] is omitted.
 			value is returned are taken.
 :[range]YankUniqueMatches[!] /{pattern}/{replacement}/[x] [{predicate}]
 							       *:PrintMatches*
-:[range]PrintMatches[!] /{pattern}/
+:[range]PrintMatches[!] /{pattern}/ [{predicate}]
 :[range]PrintMatches[!] [{pattern}]
 			Print text matching {pattern} (or the last search
 			pattern if omitted) in [range]. Each match is printed
 			on a new line. This works like "grep -o". With [!]:
-			Print only the first match in each line.
-:[range]PrintMatches[!] /{pattern}/{replacement}/
+			Print only the first match in each line. If
+			{predicate} is given, it is evaluated at each match
+			and only those matches where a true value is returned
+			are taken.
+:[range]PrintMatches[!] /{pattern}/{replacement}/ [{predicate}]
 			Like |:YankMatches|, but print the replacement instead
 			of yanking.			 *:PrintUniqueMatches*
-:[range]PrintUniqueMatches[!] /{pattern}/
+:[range]PrintUniqueMatches[!] /{pattern}/ [{predicate}]
 :[range]PrintUniqueMatches[!] [{pattern}]
-:[range]PrintUniqueMatches[!] /{pattern}/{replacement}/
+:[range]PrintUniqueMatches[!] /{pattern}/{replacement}/ [{predicate}]
 			Like |:YankUniqueMatches|, but print instead of
 			yanking.
 

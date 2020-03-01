@@ -143,17 +143,25 @@ endfunction
 function! ExtractMatches#PrintMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
     let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
 
-    let [l:separator, l:pattern, l:replacement] = ingo#cmdargs#substitute#Parse(a:arguments, {
-    \   'flagsExpr': '', 'emptyReplacement': '', 'emptyFlags': ''
+    let [l:separator, l:pattern, l:replacement, s:predicateArg] = ingo#cmdargs#substitute#Parse(a:arguments, {
+    \   'flagsExpr': s:predicatePattern, 'emptyReplacement': '', 'emptyFlags': ''
     \})
+    if empty(s:predicateArg) && ! ingo#str#EndsWith(a:arguments, l:separator) && l:replacement =~# '^' . s:predicatePattern . '$'
+	" In this command, {replacement} can be omitted; the following is then
+	" taken as the predicate.
+	let s:predicateArg = l:replacement
+	let l:replacement = ''
+    endif
     let l:pattern = ingo#cmdargs#pattern#Unescape([l:separator, l:pattern])
     let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement)
 
     let l:matches = ingo#text#frompattern#Get(l:firstLnum, l:lastLnum,
     \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
-    \   a:isOnlyFirstMatch, a:isUnique
+    \   a:isOnlyFirstMatch, a:isUnique,
+    \   s:GetPredicate()
     \)
+    unlet s:predicateArg
 
     if len(l:matches) == 0
 	call ingo#err#Set('E486: Pattern not found: ' . l:pattern)
