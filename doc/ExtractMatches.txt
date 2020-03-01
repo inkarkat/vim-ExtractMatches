@@ -146,25 +146,28 @@ All commands default to the entire buffer if the [range] is omitted.
 			register.
 
 								 *:PutMatches*
-:[line]PutMatches[!] /{pattern}/
+:[line]PutMatches[!] /{pattern}/ [{predicate}]
 :[line]PutMatches[!] [{pattern}]
-:[line]PutMatches[!] /{pattern}/{replacement}/
-			Put text matching {pattern} (or the last search pattern
-			if omitted) after [line] (default current line). Each
-			match is put on a new line (except when {replacement}
-			is specified; see |:YankMatches|). This works like
-			"grep -o".
-			With [!]: Put only the first match in each line.
-			Cp. |:YankMatches|.
+:[line]PutMatches[!] /{pattern}/{replacement}/ [{predicate}]
+			Put text matching {pattern} (or the last search
+			pattern if omitted) after [line] (default current
+			line). Each match is put on a new line (except when
+			{replacement} is specified; see |:YankMatches|). This
+			works like "grep -o". With [!]: Put only the first
+			match in each line. If {predicate} is given, it is
+			evaluated at each match and only those matches where a
+			true value is returned are taken. Cp. |:YankMatches|.
 							   *:PutUniqueMatches*
-:[line]PutUniqueMatches[!] /{pattern}/
+:[line]PutUniqueMatches[!] /{pattern}/ [{predicate}]
 :[line]PutUniqueMatches[!] [{pattern}]
-:[line]PutUniqueMatches[!] /{pattern}/{replacement}/
-			Put text matching {pattern} (or the last search pattern
-			if omitted) after [line] (default current line). Each
-			match is once put on a new line.
-			With [!]: Put only the first match in each line.
-			Cp. |:YankUniqueMatches|.
+:[line]PutUniqueMatches[!] /{pattern}/{replacement}/ [{predicate}]
+			Put text matching {pattern} (or the last search
+			pattern if omitted) after [line] (default current
+			line). Each match is once put on a new line. With [!]:
+			Put only the first match in each line. If {predicate}
+			is given, it is evaluated at each match and only those
+			matches where a true value is returned are taken. Cp.
+			|:YankUniqueMatches|.
 
 ==============================================================================
 INSTALLATION					 *ExtractMatches-installation*
