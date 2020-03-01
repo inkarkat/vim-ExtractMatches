@@ -86,6 +86,29 @@ All commands default to the entire buffer if the [range] is omitted.
 			the first match in each line. If {predicate} is given,
 			it is evaluated at each match and only those matches
 			where a true value is returned are taken.
+							  *:YankMatches-v:val*
+			Inside {predicate}, you can reference a context object
+			via |v:val|. It provides the following information:
+			    match:      current matched text
+			    matchStart: [lnum, col] of the match start
+			    matchEnd:   [lnum, col] of the match end (this is
+					also the cursor position)
+			    replacement:current replacement text (if passed,
+					else equal to match)
+			    matchCount: number of current (unique for
+					|:YankUniqueMatches|) match of
+					{pattern}
+			    acceptedCount:
+					number of matches already accepted by
+					the predicate
+			It also contains pre-initialized variables for use by
+			{predicate}. These get cleared by each |:YankMatches|
+			invocation:
+			    n: number / flag (0 / false)
+			    m: number / flag (1 / true)
+			    l: empty List []
+			    d: empty Dictionary {}
+			    s: empty String ""
 :[range]YankMatches[!] /{pattern}/{replacement}/[x] [{predicate}]
 			Grab text matching {pattern} (or the last search
 			pattern if omitted) in [range], and put {replacement}
@@ -117,7 +140,7 @@ All commands default to the entire buffer if the [range] is omitted.
 			Print only the first match in each line. If
 			{predicate} is given, it is evaluated at each match
 			and only those matches where a true value is returned
-			are taken.
+			are taken. Cp. |:YankMatches-v:val|.
 :[range]PrintMatches[!] /{pattern}/{replacement}/ [{predicate}]
 			Like |:YankMatches|, but print the replacement instead
 			of yanking.			 *:PrintUniqueMatches*
@@ -156,7 +179,8 @@ All commands default to the entire buffer if the [range] is omitted.
 			works like "grep -o". With [!]: Put only the first
 			match in each line. If {predicate} is given, it is
 			evaluated at each match and only those matches where a
-			true value is returned are taken. Cp. |:YankMatches|.
+			true value is returned are taken. Cp.
+			|:YankMatches-v:val|.
 							   *:PutUniqueMatches*
 :[line]PutUniqueMatches[!] /{pattern}/ [{predicate}]
 :[line]PutUniqueMatches[!] [{pattern}]
@@ -166,8 +190,7 @@ All commands default to the entire buffer if the [range] is omitted.
 			line). Each match is once put on a new line. With [!]:
 			Put only the first match in each line. If {predicate}
 			is given, it is evaluated at each match and only those
-			matches where a true value is returned are taken. Cp.
-			|:YankUniqueMatches|.
+			matches where a true value is returned are taken.
 
 ==============================================================================
 INSTALLATION					 *ExtractMatches-installation*
