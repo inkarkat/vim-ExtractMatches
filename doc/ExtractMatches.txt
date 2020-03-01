@@ -212,7 +212,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					 *ExtractMatches-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.035 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.041 or
   higher.
 
 ==============================================================================
@@ -232,6 +232,12 @@ below).
 
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
+
+1.50	RELEASEME
+- ENH: :{Extract,Print,Put}[Unique]Matches now take an optional [{predicate}]
+  argument at the end with which matches can be restricted with very flexible
+  rules (e.g. by checking the syntax group).
+  *** You need to update to ingo-library (vimscript #4433) version 1.041! ***
 
 1.42	20-Feb-2020
 - BUG: :Grep[Range]ToReg and :{Print,Yank}[Unique]Matches do not consider all

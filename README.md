@@ -70,14 +70,39 @@ USAGE
                             -A -B -C / --after-context --before-context --context
                             (but without the "--" group separator).
 
-    :[range]YankMatches[!] /{pattern}/[x]
+    :[range]YankMatches[!] /{pattern}/[x] [{predicate}]
     :[range]YankMatches[!] [{pattern}]
                             Yank text matching {pattern} (or the last search
                             pattern if omitted) in [range] into register [x] (or
                             the unnamed register). Each match is put on a new
                             line. This works like "grep -o". With [!]: Yank only
-                            the first match in each line.
-    :[range]YankMatches[!] /{pattern}/{replacement}/[x]
+                            the first match in each line. If {predicate} is given,
+                            it is evaluated at each match and only those matches
+                            where a true value is returned are taken.
+
+                            Inside {predicate}, you can reference a context object
+                            via v:val. It provides the following information:
+                                match:      current matched text
+                                matchStart: [lnum, col] of the match start
+                                matchEnd:   [lnum, col] of the match end (this is
+                                            also the cursor position)
+                                replacement:current replacement text (if passed,
+                                            else equal to match)
+                                matchCount: number of current (unique for
+                                            :YankUniqueMatches) match of
+                                            {pattern}
+                                acceptedCount:
+                                            number of matches already accepted by
+                                            the predicate
+                            It also contains pre-initialized variables for use by
+                            {predicate}. These get cleared by each :YankMatches
+                            invocation:
+                                n: number / flag (0 / false)
+                                m: number / flag (1 / true)
+                                l: empty List []
+                                d: empty Dictionary {}
+                                s: empty String ""
+    :[range]YankMatches[!] /{pattern}/{replacement}/[x] [{predicate}]
                             Grab text matching {pattern} (or the last search
                             pattern if omitted) in [range], and put {replacement}
                             into register [x] (or the unnamed register). You can
@@ -89,27 +114,32 @@ USAGE
                             element; if you don't want that, use \0 instead of &.
                             With [!]: Yank only the first match in each line.
 
-    :[range]YankUniqueMatches[!] /{pattern}/[x]
+    :[range]YankUniqueMatches[!] /{pattern}/[x] [{predicate}]
     :[range]YankUniqueMatches[!] [{pattern}]
                             Yank text matching {pattern} (or the last search
                             pattern if omitted) in [range] into register [x] (or
                             the unnamed register), but only once. Each match is
                             put on a new line. With [!]: Yank only the first match
-                            in each line.
-    :[range]YankUniqueMatches[!] /{pattern}/{replacement}/[x]
+                            in each line. If {predicate} is given, it is evaluated
+                            at each match and only those matches where a true
+                            value is returned are taken.
+    :[range]YankUniqueMatches[!] /{pattern}/{replacement}/[x] [{predicate}]
 
-    :[range]PrintMatches[!] /{pattern}/
+    :[range]PrintMatches[!] /{pattern}/ [{predicate}]
     :[range]PrintMatches[!] [{pattern}]
                             Print text matching {pattern} (or the last search
                             pattern if omitted) in [range]. Each match is printed
                             on a new line. This works like "grep -o". With [!]:
-                            Print only the first match in each line.
-    :[range]PrintMatches[!] /{pattern}/{replacement}/
+                            Print only the first match in each line. If
+                            {predicate} is given, it is evaluated at each match
+                            and only those matches where a true value is returned
+                            are taken. Cp. :YankMatches-v:val.
+    :[range]PrintMatches[!] /{pattern}/{replacement}/ [{predicate}]
                             Like :YankMatches, but print the replacement instead
                             of yanking.
-    :[range]PrintUniqueMatches[!] /{pattern}/
+    :[range]PrintUniqueMatches[!] /{pattern}/ [{predicate}]
     :[range]PrintUniqueMatches[!] [{pattern}]
-    :[range]PrintUniqueMatches[!] /{pattern}/{replacement}/
+    :[range]PrintUniqueMatches[!] /{pattern}/{replacement}/ [{predicate}]
                             Like :YankUniqueMatches, but print instead of
                             yanking.
 
@@ -130,25 +160,28 @@ USAGE
                             refer to the corresponding existing match in the
                             register.
 
-    :[line]PutMatches[!] /{pattern}/
+    :[line]PutMatches[!] /{pattern}/ [{predicate}]
     :[line]PutMatches[!] [{pattern}]
-    :[line]PutMatches[!] /{pattern}/{replacement}/
-                            Put text matching {pattern} (or the last search pattern
-                            if omitted) after [line] (default current line). Each
-                            match is put on a new line (except when {replacement}
-                            is specified; see :YankMatches). This works like
-                            "grep -o".
-                            With [!]: Put only the first match in each line.
-                            Cp. :YankMatches.
+    :[line]PutMatches[!] /{pattern}/{replacement}/ [{predicate}]
+                            Put text matching {pattern} (or the last search
+                            pattern if omitted) after [line] (default current
+                            line). Each match is put on a new line (except when
+                            {replacement} is specified; see :YankMatches). This
+                            works like "grep -o". With [!]: Put only the first
+                            match in each line. If {predicate} is given, it is
+                            evaluated at each match and only those matches where a
+                            true value is returned are taken. Cp.
+                            :YankMatches-v:val.
 
-    :[line]PutUniqueMatches[!] /{pattern}/
+    :[line]PutUniqueMatches[!] /{pattern}/ [{predicate}]
     :[line]PutUniqueMatches[!] [{pattern}]
-    :[line]PutUniqueMatches[!] /{pattern}/{replacement}/
-                            Put text matching {pattern} (or the last search pattern
-                            if omitted) after [line] (default current line). Each
-                            match is once put on a new line.
-                            With [!]: Put only the first match in each line.
-                            Cp. :YankUniqueMatches.
+    :[line]PutUniqueMatches[!] /{pattern}/{replacement}/ [{predicate}]
+                            Put text matching {pattern} (or the last search
+                            pattern if omitted) after [line] (default current
+                            line). Each match is once put on a new line. With [!]:
+                            Put only the first match in each line. If {predicate}
+                            is given, it is evaluated at each match and only those
+                            matches where a true value is returned are taken.
 
 INSTALLATION
 ------------------------------------------------------------------------------
@@ -172,7 +205,7 @@ To uninstall, use the :RmVimball command.
 ### DEPENDENCIES
 
 - Requires Vim 7.0 or higher.
-- Requires the ingo-library.vim plugin ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)), version 1.035 or
+- Requires the ingo-library.vim plugin ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)), version 1.041 or
   higher.
 
 CONTRIBUTING
@@ -184,6 +217,13 @@ below).
 
 HISTORY
 ------------------------------------------------------------------------------
+
+##### 1.50    RELEASEME
+- ENH: :{Extract,Print,Put}[Unique]Matches now take an optional [{predicate}]
+  argument at the end with which matches can be restricted with very flexible
+  rules (e.g. by checking the syntax group).
+
+__You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.041!__
 
 ##### 1.42    20-Feb-2020
 - BUG: :Grep[Range]ToReg and :{Print,Yank}[Unique]Matches do not consider all
