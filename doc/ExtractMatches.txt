@@ -77,14 +77,16 @@ All commands default to the entire buffer if the [range] is omitted.
 			-A -B -C / --after-context --before-context --context
 			(but without the "--" group separator).
 								*:YankMatches*
-:[range]YankMatches[!] /{pattern}/[x]
+:[range]YankMatches[!] /{pattern}/[x] [{predicate}]
 :[range]YankMatches[!] [{pattern}]
 			Yank text matching {pattern} (or the last search
 			pattern if omitted) in [range] into register [x] (or
 			the unnamed register). Each match is put on a new
 			line. This works like "grep -o". With [!]: Yank only
-			the first match in each line.
-:[range]YankMatches[!] /{pattern}/{replacement}/[x]
+			the first match in each line. If {predicate} is given,
+			it is evaluated at each match and only those matches
+			where a true value is returned are taken.
+:[range]YankMatches[!] /{pattern}/{replacement}/[x] [{predicate}]
 			Grab text matching {pattern} (or the last search
 			pattern if omitted) in [range], and put {replacement}
 			into register [x] (or the unnamed register). You can
@@ -96,14 +98,16 @@ All commands default to the entire buffer if the [range] is omitted.
 			element; if you don't want that, use \0 instead of &.
 			With [!]: Yank only the first match in each line.
 							  *:YankUniqueMatches*
-:[range]YankUniqueMatches[!] /{pattern}/[x]
+:[range]YankUniqueMatches[!] /{pattern}/[x] [{predicate}]
 :[range]YankUniqueMatches[!] [{pattern}]
 			Yank text matching {pattern} (or the last search
 			pattern if omitted) in [range] into register [x] (or
 			the unnamed register), but only once. Each match is
 			put on a new line. With [!]: Yank only the first match
-			in each line.
-:[range]YankUniqueMatches[!] /{pattern}/{replacement}/[x]
+			in each line. If {predicate} is given, it is evaluated
+			at each match and only those matches where a true
+			value is returned are taken.
+:[range]YankUniqueMatches[!] /{pattern}/{replacement}/[x] [{predicate}]
 							       *:PrintMatches*
 :[range]PrintMatches[!] /{pattern}/
 :[range]PrintMatches[!] [{pattern}]

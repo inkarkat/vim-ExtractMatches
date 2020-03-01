@@ -155,16 +155,23 @@ function! ExtractMatches#PrintMatches( firstLnum, lastLnum, arguments, isOnlyFir
 	return 1
     endif
 endfunction
+function! ExtractMatches#PredicateWithContext( context ) abort
+    return ingo#actions#EvaluateWithVal(s:predicateExpr, a:context)
+endfunction
+function! ExtractMatches#PredicateWithoutContext( context ) abort
+    return eval(s:predicateExpr)
+endfunction
 function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
     let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
 
-    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
-    \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
+    let l:registerAndPredicateExpr = s:writableRegisterExpr . '\%(\s*$\|\%(^\|\s\+\)\(.*\)\)'
+    let [l:separator, l:pattern, l:replacement, l:register, s:predicateExpr] = ingo#cmdargs#substitute#Parse(a:arguments, {
+    \   'flagsExpr': l:registerAndPredicateExpr, 'flagsMatchCount': 2, 'emptyReplacement': '', 'emptyFlags': ['', '']
     \})
-    if empty(l:register) && l:replacement =~# '^' . s:writableRegisterExpr . '$'
+    if empty(l:register) && empty(s:predicateExpr) && ! ingo#str#EndsWith(a:arguments, l:separator) && l:replacement =~# '^' . l:registerAndPredicateExpr . '$'
 	" In this command, {replacement} can be omitted; the following is then
-	" taken as the register.
-	let l:register = matchlist(l:replacement, '\C^' . s:writableRegisterExpr . '$')[1]
+	" taken as the register + predicate.
+	let [l:register, s:predicateExpr] = matchlist(l:replacement, '\C^' . l:registerAndPredicateExpr . '$')[1:2]
 	let l:replacement = ''
     endif
     let l:register = (empty(l:register) ? '"' : l:register)
@@ -174,8 +181,16 @@ function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirs
 
     let l:matches = ingo#text#frompattern#Get(l:firstLnum, l:lastLnum,
     \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
-    \   a:isOnlyFirstMatch, a:isUnique
+    \   a:isOnlyFirstMatch, a:isUnique,
+    \   (empty(s:predicateExpr) ?
+    \       '' :
+    \       (s:predicateExpr =~# ingo#actions#GetValExpr() ?
+    \           function('ExtractMatches#PredicateWithContext') :
+    \           function('ExtractMatches#PredicateWithoutContext')
+    \       )
+    \   )
     \)
+    unlet s:predicateExpr
 
     if len(l:matches) == 0
 	call ingo#err#Set('E486: Pattern not found: ' . l:pattern)
