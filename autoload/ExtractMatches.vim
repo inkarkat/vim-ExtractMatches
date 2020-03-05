@@ -190,7 +190,7 @@ function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirs
     if empty(l:register) && empty(s:predicateArg) && ! ingo#str#EndsWith(a:arguments, l:separator) && l:replacement =~# '^' . s:registerAndPredicatePattern . '$'
 	" In this command, {replacement} can be omitted; the following is then
 	" taken as the register + predicate.
-	let [l:register, s:predicateArg] = matchlist(l:replacement, '\C^' . s:registerAndPredicatePattern . '$')[1:2]
+	let [l:register, s:predicateArg] = matchlist(l:replacement, ingo#compat#regexp#GetOldEnginePrefix() . '\C^' . s:registerAndPredicatePattern . '$')[1:2]
 	let l:replacement = ''
     endif
     let l:register = (empty(l:register) ? '"' : l:register)
