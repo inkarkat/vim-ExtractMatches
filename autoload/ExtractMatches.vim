@@ -12,7 +12,7 @@ set cpo&vim
 
 let s:writableRegisterPattern = '\s*\(' . ingo#register#Writable() . '\)\?'
 let s:predicatePattern = '\s*\(.*\)'
-let s:registerAndPredicatePattern = s:writableRegisterPattern . '\%(\s*$\|\s\+\(.*\)\)'
+let s:registerAndPredicatePattern = s:writableRegisterPattern . '\%(\s*$\|\%(^\|\s\+\)\(.*\)\)'
 
 function! s:GetPredicate() abort
     return (empty(s:predicateArg) ?
@@ -184,7 +184,6 @@ endfunction
 function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
     let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
 
-    let s:registerAndPredicatePattern = s:writableRegisterPattern . '\%(\s*$\|\%(^\|\s\+\)\(.*\)\)'
     let [l:separator, l:pattern, l:replacement, l:register, s:predicateArg] = ingo#cmdargs#substitute#Parse(a:arguments, {
     \   'flagsExpr': s:registerAndPredicatePattern, 'flagsMatchCount': 2, 'emptyReplacement': '', 'emptyFlags': ['', '']
     \})
