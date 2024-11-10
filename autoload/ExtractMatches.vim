@@ -10,7 +10,19 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:writableRegisterExpr = '\s*\(' . ingo#register#Writable() . '\)\?'
+let s:writableRegisterPattern = '\s*\(' . ingo#register#Writable() . '\)\?'
+let s:predicatePattern = '\s*\(.*\)'
+let s:registerAndPredicatePattern = s:writableRegisterPattern . '\%(\s*$\|\%(^\|\s\+\)\(.*\)\)'
+
+function! s:GetPredicate() abort
+    return (empty(s:predicateArg) ?
+    \   '' :
+    \   (s:predicateArg =~# ingo#actions#GetValExpr() ?
+    \       function('ExtractMatches#PredicateWithContext') :
+    \       function('ExtractMatches#PredicateWithoutContext')
+    \   )
+    \)
+endfunction
 
 function! s:Grep( firstLnum, lastLnum, isNonMatchingLines, pattern, range, register )
     let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
@@ -63,13 +75,13 @@ function! s:Grep( firstLnum, lastLnum, isNonMatchingLines, pattern, range, regis
     endif
 endfunction
 function! ExtractMatches#GrepToReg( firstLnum, lastLnum, arguments, isNonMatchingLines )
-    let [l:pattern, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, s:writableRegisterExpr)
+    let [l:pattern, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, s:writableRegisterPattern)
     let l:register = (empty(l:register) ? '"' : l:register)
 
     return s:Grep(a:firstLnum, a:lastLnum, a:isNonMatchingLines, l:pattern, '', l:register)
 endfunction
 function! ExtractMatches#GrepRangeToReg( firstLnum, lastLnum, arguments, isNonMatchingLines )
-    let [l:pattern, l:range, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, '\s\+\(' . ingo#cmdargs#range#RangeExpr(). '\)\%(\s\+\(' . s:writableRegisterExpr . '\)\)\?', 2)
+    let [l:pattern, l:range, l:register] = ingo#cmdargs#pattern#ParseUnescaped(a:arguments, '\s\+\(' . ingo#cmdargs#range#RangeExpr(). '\)\%(\s\+\(' . s:writableRegisterPattern . '\)\)\?', 2)
     if empty(l:range) && ! empty(l:pattern) || l:pattern ==# a:arguments
 	" Prefer (mandatory) range over (optional) pattern; it might get parsed incorrectly.
 	let l:pattern = ''
@@ -131,17 +143,25 @@ endfunction
 function! ExtractMatches#PrintMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
     let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
 
-    let [l:separator, l:pattern, l:replacement] = ingo#cmdargs#substitute#Parse(a:arguments, {
-    \   'flagsExpr': '', 'emptyReplacement': '', 'emptyFlags': ''
+    let [l:separator, l:pattern, l:replacement, s:predicateArg] = ingo#cmdargs#substitute#Parse(a:arguments, {
+    \   'flagsExpr': s:predicatePattern, 'emptyReplacement': '', 'emptyFlags': ''
     \})
+    if empty(s:predicateArg) && ! ingo#str#EndsWith(a:arguments, l:separator) && l:replacement =~# '^' . s:predicatePattern . '$'
+	" In this command, {replacement} can be omitted; the following is then
+	" taken as the predicate.
+	let s:predicateArg = l:replacement
+	let l:replacement = ''
+    endif
     let l:pattern = ingo#cmdargs#pattern#Unescape([l:separator, l:pattern])
     let l:replacement = ingo#cmdargs#pattern#Unescape([l:separator, l:replacement])
 "****D echomsg '****' string(l:pattern) string(l:replacement)
 
     let l:matches = ingo#text#frompattern#Get(l:firstLnum, l:lastLnum,
     \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
-    \   a:isOnlyFirstMatch, a:isUnique
+    \   a:isOnlyFirstMatch, a:isUnique,
+    \   s:GetPredicate()
     \)
+    unlet s:predicateArg
 
     if len(l:matches) == 0
 	call ingo#err#Set('E486: Pattern not found: ' . l:pattern)
@@ -155,16 +175,22 @@ function! ExtractMatches#PrintMatches( firstLnum, lastLnum, arguments, isOnlyFir
 	return 1
     endif
 endfunction
+function! ExtractMatches#PredicateWithContext( context ) abort
+    return ingo#actions#EvaluateWithVal(s:predicateArg, a:context)
+endfunction
+function! ExtractMatches#PredicateWithoutContext( context ) abort
+    return eval(s:predicateArg)
+endfunction
 function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirstMatch, isUnique )
     let [l:firstLnum, l:lastLnum] = [ingo#range#NetStart(a:firstLnum), ingo#range#NetEnd(a:lastLnum)]
 
-    let [l:separator, l:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
-    \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
+    let [l:separator, l:pattern, l:replacement, l:register, s:predicateArg] = ingo#cmdargs#substitute#Parse(a:arguments, {
+    \   'flagsExpr': s:registerAndPredicatePattern, 'flagsMatchCount': 2, 'emptyReplacement': '', 'emptyFlags': ['', '']
     \})
-    if empty(l:register) && l:replacement =~# '^' . s:writableRegisterExpr . '$'
+    if empty(l:register) && empty(s:predicateArg) && ! ingo#str#EndsWith(a:arguments, l:separator) && l:replacement =~# '^' . s:registerAndPredicatePattern . '$'
 	" In this command, {replacement} can be omitted; the following is then
-	" taken as the register.
-	let l:register = matchlist(l:replacement, '\C^' . s:writableRegisterExpr . '$')[1]
+	" taken as the register + predicate.
+	let [l:register, s:predicateArg] = matchlist(l:replacement, ingo#compat#regexp#GetOldEnginePrefix() . '\C^' . s:registerAndPredicatePattern . '$')[1:2]
 	let l:replacement = ''
     endif
     let l:register = (empty(l:register) ? '"' : l:register)
@@ -174,8 +200,10 @@ function! ExtractMatches#YankMatches( firstLnum, lastLnum, arguments, isOnlyFirs
 
     let l:matches = ingo#text#frompattern#Get(l:firstLnum, l:lastLnum,
     \   l:pattern, s:SpecialReplacement(l:pattern, l:replacement),
-    \   a:isOnlyFirstMatch, a:isUnique
+    \   a:isOnlyFirstMatch, a:isUnique,
+    \   s:GetPredicate()
     \)
+    unlet s:predicateArg
 
     if len(l:matches) == 0
 	call ingo#err#Set('E486: Pattern not found: ' . l:pattern)
@@ -208,7 +236,7 @@ endfunction
 
 function! ExtractMatches#SubstituteAndYank( firstLnum, lastLnum, arguments, isUnique )
     let [l:separator, s:pattern, l:replacement, l:register] = ingo#cmdargs#substitute#Parse(a:arguments, {
-    \   'flagsExpr': s:writableRegisterExpr, 'emptyReplacement': '', 'emptyFlags': ''
+    \   'flagsExpr': s:writableRegisterPattern, 'emptyReplacement': '', 'emptyFlags': ''
     \})
 "****D echomsg '****' string([l:separator, s:pattern, l:replacement, l:register])
     if l:register ==# l:separator
