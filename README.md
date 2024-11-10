@@ -218,7 +218,7 @@ below).
 HISTORY
 ------------------------------------------------------------------------------
 
-##### 1.50    RELEASEME
+##### 1.50    10-Nov-2024
 - ENH: :{Extract,Print,Put}[Unique]Matches now take an optional [{predicate}]
   argument at the end with which matches can be restricted with very flexible
   rules (e.g. by checking the syntax group).
@@ -293,7 +293,7 @@ __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scrip
 - Started development.
 
 ------------------------------------------------------------------------------
-Copyright: (C) 2010-2020 Ingo Karkat -
+Copyright: (C) 2010-2024 Ingo Karkat -
 The [VIM LICENSE](http://vimdoc.sourceforge.net/htmldoc/uganda.html#license) applies to this plugin.
 
 Maintainer:     Ingo Karkat &lt;ingo@karkat.de&gt;

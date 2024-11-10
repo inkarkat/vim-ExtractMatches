@@ -233,7 +233,7 @@ below).
 ==============================================================================
 HISTORY						      *ExtractMatches-history*
 
-1.50	RELEASEME
+1.50	10-Nov-2024
 - ENH: :{Extract,Print,Put}[Unique]Matches now take an optional [{predicate}]
   argument at the end with which matches can be restricted with very flexible
   rules (e.g. by checking the syntax group).
@@ -304,7 +304,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2010-2020 Ingo Karkat
+Copyright: (C) 2010-2024 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
